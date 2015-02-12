@@ -588,8 +588,12 @@ class PlotMaker:
                     if p2: p2.SetLogx(True)
                     total.GetXaxis().SetNoExponent(True)
                     total.GetXaxis().SetMoreLogLabels(True)
-                if islog: total.SetMaximum(2*total.GetMaximum())
-                if not islog: total.SetMinimum(0)
+                if islog: 
+                    total.SetMaximum(2*total.GetMaximum())
+                    total.SetMinimum(0.01)
+                else: total.SetMinimum(0)
+                if pspec.hasOption('YMin'):
+                    total.SetMinimum(pspec.getOption('YMin',1.0))
                 total.Draw("HIST")
                 if self._options.plotmode == "stack":
                     stack.Draw("SAME HIST")
