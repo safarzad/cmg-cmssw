@@ -26,9 +26,9 @@ MODULES.append( ('susy2lss', SusyVars2LSSInc()) )
 #MODULES.append( ('MuMVAId', MuonMVAFriend("BPH",     "/afs/cern.ch/work/g/gpetrucc/TREES_70X_240914/0_muMVAId_v1/train70XBPH_BDTG.weights.xml", label="BPH")) )
 #MODULES.append( ('MuMVAId', MuonMVAFriend("BPHCalo", "/afs/cern.ch/work/g/gpetrucc/TREES_70X_240914/0_muMVAId_v1/train70XBPHCalo_BDTG.weights.xml", label="BPHCalo")) )
 #MODULES.append( ('MuMVAId', MuonMVAFriend("Full",    "/afs/cern.ch/work/g/gpetrucc/TREES_70X_240914/0_muMVAId_v1/train70XFull_BDTG.weights.xml", label="Full")) )
-from CMGTools.TTHAnalysis.tools.LepMVAFriend import LepMVAFriend
-MODULES.append( ('LepMVAFriend', LepMVAFriend(("/afs/cern.ch/user/g/gpetrucc/w/TREES_72X_171214/0_lepMVA_v1/%s_BDTG.weights.xml",
-                                               "/afs/cern.ch/user/g/gpetrucc/w/TREES_72X_171214/0_lepMVA_v1/%s_BDTG.weights.xml"))) )
+#from CMGTools.TTHAnalysis.tools.LepMVAFriend import LepMVAFriend
+#MODULES.append( ('LepMVAFriend', LepMVAFriend(("/afs/cern.ch/user/g/gpetrucc/w/TREES_72X_171214/0_lepMVA_v1/%s_BDTG.weights.xml",
+#                                               "/afs/cern.ch/user/g/gpetrucc/w/TREES_72X_171214/0_lepMVA_v1/%s_BDTG.weights.xml"))) )
 #MODULES.append( ('LepMVAFriend', LepMVAFriend(("/afs/cern.ch/work/g/gpetrucc/TREES_70X_240914/0_lepMVA_v1/SV_%s_BDTG.weights.xml",
 #                                               "/afs/cern.ch/work/g/gpetrucc/TREES_70X_240914/0_lepMVA_v1/SV_%s_BDTG.weights.xml",),
 #                                               training="muMVAId_SV", label="SV")) )
@@ -40,6 +40,10 @@ MODULES.append( ('LepMVAFriend', LepMVAFriend(("/afs/cern.ch/user/g/gpetrucc/w/T
 
 from CMGTools.TTHAnalysis.tools.eventVars_1l import EventVars1L 
 MODULES.append( ('1l_Basics', EventVars1L()) )
+from CMGTools.TTHAnalysis.tools.eventVars_1l_genLevel import EventVars1LGenLevel 
+MODULES.append( ('1l_BasicsGen', EventVars1LGenLevel()) )
+#from CMGTools.TTHAnalysis.tools.resolvedTopTagVars_1l import resolvedTopTagVars1l 
+#MODULES.append( ('1l_resolvedTopTagVars', resolvedTopTagVars1l()) )
 
 
  
