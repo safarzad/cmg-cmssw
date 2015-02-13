@@ -7,8 +7,8 @@ MODULES = []
 
 #from CMGTools.TTHAnalysis.tools.eventVars_2lss import EventVars2LSS 
 #MODULES.append( ('2lss', EventVars2LSS()) )
-from CMGTools.TTHAnalysis.tools.susyVars_2lssInc import SusyVars2LSSInc 
-MODULES.append( ('susy2lss', SusyVars2LSSInc()) )
+#from CMGTools.TTHAnalysis.tools.susyVars_2lssInc import SusyVars2LSSInc 
+#MODULES.append( ('susy2lss', SusyVars2LSSInc()) )
 #from CMGTools.TTHAnalysis.tools.finalMVA_2lss import FinalMVA_2LSS
 #MODULES.append( ('2lss_mva', FinalMVA_2LSS()) )
 #from CMGTools.TTHAnalysis.tools.finalMVA_3l import FinalMVA_3L

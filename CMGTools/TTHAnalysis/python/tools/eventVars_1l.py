@@ -140,9 +140,9 @@ class EventVars1L:
             SumMetClosestBJet = jets[idxMinDPhiBMET].p4() + metp4
             ret["mTClBPlusMET"] = SumMetClosestBJet.Mt()
             mTBJetMET = mt_2(jets[idxMinDPhiBMET].p4(),metp4)
-            if nlep>=1:
-                mLepBJet = (jets[idxMinDPhiBMET].p4() + leps[0].p4()).M()
-                mTLepMET = mt_2(leps[0].p4(),metp4)
+            if ret['nTightLeps25']>=1:
+                mLepBJet = (jets[idxMinDPhiBMET].p4() + tightLeps25[0].p4()).M()
+                mTLepMET = mt_2(tightLeps25[0].p4(),metp4)
         else:
             ret["mTClBPlusMET"] = -999
 
@@ -153,12 +153,12 @@ class EventVars1L:
 
         # projection of MET along (MET + lepton + (closest (to MET) BJet)) sum; needs to be double-checked...
         METtoTopProjection = -999
-        if(idxMinDPhiBMET>=0 and nlep >=1) :
+        if(idxMinDPhiBMET>=0 and ret['nTightLeps25']>=1) :
             metV2  = ROOT.TVector2(0,0)
             lepV2  = ROOT.TVector2(0,0)
             bJetV2 = ROOT.TVector2(0,0)
             metV2   .SetMagPhi(event.met_pt, event.met_phi)
-            lepV2   .SetMagPhi(leps[0].pt, leps[0].phi)
+            lepV2   .SetMagPhi(tightLeps25[0].pt, tightLeps25[0].phi)
             bJetV2  .SetMagPhi(jets[idxMinDPhiBMET].pt, jets[idxMinDPhiBMET].phi)
             METtoTopProjection = (metV2*(metV2+lepV2+bJetV2))/(metV2*metV2)
         ret["METtoTopProjection"]  = METtoTopProjection

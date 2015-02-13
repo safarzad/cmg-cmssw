@@ -1,6 +1,5 @@
 hMETLogY:     met_pt                                : 40,0,999.9999;  XTitle="MET [GeV]", Logy
 hMET:         met_pt                                : 40,0,999.9999;  XTitle="MET [GeV]"
-
 hHTLogY:     htJet30j                                : 40,0,2999.9999;  XTitle="H_{T} [GeV]", Logy
 hHT:         htJet30j                                : 40,0,2999.9999;  XTitle="H_{T} [GeV]"
 hSTLogY:     LepGood_pt[tightLeps25idx[0]] + met_pt  : 40,0,1599.9999;  XTitle="S_{T} [GeV]", Logy
@@ -13,3 +12,4 @@ hdPhiLepWLogy:   fabs(DeltaPhiLepW)                        : 20,0,3.141   ; XTit
 hdPhiLepW:   fabs(DeltaPhiLepW)                        : 20,0,3.141   ; XTitle="#Delta #varphi (lep\,W)", IncludeOverflows=False 
 
 
+DEMOfunctionscc_deltaPhiLepMET:  fabs(deltaPhi(LepGood_phi[tightLeps25idx[0]],met_phi)) : 40,0,3.141 ; XTitle = "#Delta #varphi (lep\,met)", Logy

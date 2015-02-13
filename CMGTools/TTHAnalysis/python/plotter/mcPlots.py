@@ -613,8 +613,7 @@ class PlotMaker:
                 elif islog: #plain log without extra labels
                     total.SetMaximum(2*total.GetMaximum())
                     total.SetMinimum(0.01) # default min value for logy
-                    if pspec.hasOption('YMin'):
-                    total.SetMinimum(pspec.getOption('YMin',1.0))
+                    if pspec.hasOption('YMin'): total.SetMinimum(pspec.getOption('YMin',1.0))
                 else: total.SetMinimum(0)
                 total.Draw("HIST")
                 if self._options.plotmode == "stack":
