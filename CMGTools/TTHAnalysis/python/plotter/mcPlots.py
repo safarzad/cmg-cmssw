@@ -650,7 +650,7 @@ class PlotMaker:
                 doLegend(pmap,mca,corner=pspec.getOption('Legend','TR'),
                                   cutoff=legendCutoff, mcStyle=("F" if self._options.plotmode == "stack" else "L"),
                                   cutoffSignals=not(options.showSigShape or options.showIndivSigShapes or options.showSFitShape), 
-                                  textSize=(0.045 if doRatio else 0.035),
+                                  textSize=(0.045 if doRatio else  options.legendTextSize),
                                   legWidth=options.legendWidth)
                 doTinyCmsPrelim(hasExpo = total.GetMaximum() > 9e4 and not c1.GetLogy(),textSize=(0.045 if doRatio else 0.033))
                 if not options.extraLabel=="": printExtraLabel(options.extraLabel,pspec.getOption('Legend','TR'))
@@ -751,6 +751,7 @@ def addPlotMakerOptions(parser):
     parser.add_option("--select-plot", "--sP", dest="plotselect", action="append", default=[], help="Select only these plots out of the full file")
     parser.add_option("--exclude-plot", "--xP", dest="plotexclude", action="append", default=[], help="Exclude these plots from the full file")
     parser.add_option("--legendWidth", dest="legendWidth", type="float", default=0.25, help="Width of the legend")
+    parser.add_option("--legendTextSize", dest="legendTextSize", type="float", default=0.035, help="Textsize used in the legend (if no ratio plot is done)")
     parser.add_option("--flagDifferences", dest="flagDifferences", action="store_true", default=False, help="Flag plots that are different (when using only two processes, and plotmode nostack")
 
 if __name__ == "__main__":
