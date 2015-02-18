@@ -12,10 +12,10 @@ T1tttt_HL_1500_100+: SMS_T1tttt_2J_mGl1500_mLSP100 : 0.0141903 ; FillColor=ROOT.
 
 #Background
 TT 	 : TTJets : 809.1 ; FillColor=ROOT.kBlue-2, Label="t\#bar{t}", NormSystematic=0.5
-#TT_DiLep 	 : TTJets : 809.1 : ngenLepFromTau+ngenLep ==2 ; FillColor=ROOT.kGray+1, Label="t\#bar{t} dileptonic", NormSystematic=0.5
-#TT_SemiLep 	 : TTJets : 809.1 : ngenLepFromTau+ngenLep ==1 ; FillColor=ROOT.kGray+2, Label="t\#bar{t} l+jets", NormSystematic=0.5
-#TT_FullHad 	 : TTJets : 809.1 : ngenLep+ngenTau ==0 ; FillColor=ROOT.kGray+3, Label="t\#bar{t} alljets", NormSystematic=0.5
-#TT_HadTau 	 : TTJets : 809.1 : ngenLep==0 && ngenLepFromTau==0 && ngenTau>0  ; FillColor=ROOT.kGray+4, Label="t\#bar{t} had. #tau", NormSystematic=0.5
+#TT_DiLep 	 : TTJets : 809.1 : ngenLepFromTau+ngenLep ==2 ; FillColor=ROOT.kBlue, Label="t\#bar{t} dileptonic", NormSystematic=0.5
+#TT_SemiLep 	 : TTJets : 809.1 : ngenLepFromTau+ngenLep ==1 ; FillColor=ROOT.kBlue+1, Label="t\#bar{t} l+jets", NormSystematic=0.5
+#TT_FullHad 	 : TTJets : 809.1 : ngenLep+ngenTau ==0 ; FillColor=ROOT.kBlue+2, Label="t\#bar{t} alljets", NormSystematic=0.5
+#TT_HadTau 	 : TTJets : 809.1 : ngenLep==0 && ngenLepFromTau==0 && ngenTau>0  ; FillColor=ROOT.kBlue+3, Label="t\#bar{t} had. \#tau", NormSystematic=0.5
 
 
 SingleT  :TToLeptons_tch	  :             136.05*0.108*3	;FillColor = ROOT.kViolet+5, Label= "t/\#bar{t}", NormSystematic=0.5

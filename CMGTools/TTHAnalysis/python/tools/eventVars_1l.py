@@ -1,8 +1,24 @@
 from CMGTools.TTHAnalysis.treeReAnalyzer import *
-from ROOT import TLorentzVector, TVector2
+from ROOT import TLorentzVector, TVector2, std
+#, std
 import ROOT
 import time
 import itertools
+import PhysicsTools.Heppy.loadlibs
+import array
+
+
+mt2wSNT = ROOT.heppy.mt2w_bisect.mt2w()
+topness = ROOT.Topness.Topness()
+ROOT.gInterpreter.GenerateDictionary("vector<TLorentzVector>","TLorentzVector.h;vector") #need this to be able to use topness code
+
+def getPhysObjectArray(j): # https://github.com/HephySusySW/Workspace/blob/72X-master/RA4Analysis/python/mt2w.py
+  px = j.pt*cos(j.phi )
+  py = j.pt*sin(j.phi )
+  pz = j.pt*sinh(j.eta )
+  E = sqrt(px*px+py*py+pz*pz) #assuming massless particles...
+  return array.array('d', [E, px, py,pz])
+
 
 def mt_2(p4one, p4two):
     return sqrt(2*p4one.Pt()*p4two.Pt()*(1-cos(p4one.Phi()-p4two.Phi())))
@@ -17,7 +33,8 @@ class EventVars1L:
                          ("nCentralJet30","I"),("centralJet30idx","I",100,"nCentralJet30"),
                          ("nBJetCMVAMedium30","I"),("BJetCMVAMedium30idx","I",50,"nBJetCMVAMedium30"),
                          "nGoodBJets_allJets", "nGoodBJets",
-                         "LSLjetptGT80", "htJet30j", "htJet30ja"
+                         "LSLjetptGT80", "htJet30j", "htJet30ja",
+                          "MT2W", "Topness"
                          ]
 
     
@@ -35,6 +52,7 @@ class EventVars1L:
         
         metp4 = ROOT.TLorentzVector(0,0,0,0)
         metp4.SetPtEtaPhiM(event.met_pt,event.met_eta,event.met_phi,event.met_mass)
+        pmiss  =array.array('d',[event.met_pt * cos(event.met_phi), event.met_pt * sin(event.met_phi)] )
         
         #isolation criteria as defined for PHYS14 1l synchronisation exercise
         ele_relisoCut = 0.14
@@ -91,11 +109,13 @@ class EventVars1L:
 
         BJetCMVAMedium30 = []
         BJetCMVAMedium30idx = []
+        NonBJetCMVAMedium30 = []
         for i,j in enumerate(centralJet30):
             if j.btagCMVA>0.732:
                 BJetCMVAMedium30.append(j)
                 BJetCMVAMedium30idx.append(centralJet30idx[i])
-
+            else:
+                NonBJetCMVAMedium30.append(j)
         ret['nBJetCMVAMedium30']    = len(BJetCMVAMedium30)
         ret['BJetCMVAMedium30idx']  = BJetCMVAMedium30idx
 
@@ -163,6 +183,59 @@ class EventVars1L:
             METtoTopProjection = (metV2*(metV2+lepV2+bJetV2))/(metV2*metV2)
         ret["METtoTopProjection"]  = METtoTopProjection
 
+
+        #add topness and mt2W-variable (timing issue with topness: slows down the friend tree production by a factor of ~3)
+        ret['Topness']=-999
+        mt2w_values=[]
+        if ret['nTightLeps25']>=1: #topness and mt2w only make sense for 
+            lep = getPhysObjectArray(tightLeps25[0])
+            if ret['nBJetCMVAMedium30']==0 and ret['nCentralJet30']>=3: #All combinations from the highest three light (or b-) jets
+                consideredJets = [ getPhysObjectArray(jet) for jet in NonBJetCMVAMedium30[:3] ] # only throw arrays into the permutation business
+                ftPerms = itertools.permutations(consideredJets, 2)
+                for perm in ftPerms:
+                    mt2wSNT.set_momenta(lep, perm[0], perm[1], pmiss)
+                    mt2w_values.append(mt2wSNT.get_mt2w())
+            elif ret['nBJetCMVAMedium30']==1 and ret['nCentralJet30']>=2: #All combinations from one b and the highest two light jets
+                consideredJets = [ getPhysObjectArray(jet) for jet in NonBJetCMVAMedium30[:2] ] # only throw arrays into the permutation business
+                consideredJets.append(getPhysObjectArray(BJetCMVAMedium30[0]))
+                ftPerms = itertools.permutations(consideredJets, 2)
+                for perm in ftPerms:
+                    mt2wSNT.set_momenta(lep, perm[0], perm[1], pmiss)
+                    mt2w_values.append(mt2wSNT.get_mt2w())
+            elif ret['nBJetCMVAMedium30']==2: 
+                consideredJets = [ getPhysObjectArray(jet) for jet in BJetCMVAMedium30[:2] ] # only throw arrays into the permutation business
+                ftPerms = itertools.permutations(consideredJets, 2)
+                for perm in ftPerms:
+                    mt2wSNT.set_momenta(lep, perm[0], perm[1], pmiss)
+                    mt2w_values.append(mt2wSNT.get_mt2w())
+            elif ret['nBJetCMVAMedium30']>=3: #All combinations from the highest three b jets
+                consideredJets = [ getPhysObjectArray(jet) for jet in BJetCMVAMedium30[:3] ] # only throw arrays into the permutation business
+                ftPerms = itertools.permutations(consideredJets, 2)
+                for perm in ftPerms:
+                    mt2wSNT.set_momenta(lep, perm[0], perm[1], pmiss)
+                    mt2w_values.append(mt2wSNT.get_mt2w())
+
+            p4_jets = std.vector(TLorentzVector)();
+            bdisc_jets = std.vector('float')();
+
+            for jet in centralJet30:
+                jetTLorentz = ROOT.TLorentzVector(0,0,0,0)
+                jetTLorentz.SetPtEtaPhiM(jet.pt, jet.eta, jet.phi, jet.mass)
+                p4_jets.push_back(jetTLorentz)
+                bdisc_jets.push_back(jet.btagCMVA)
+
+            lepTLorentz = ROOT.TLorentzVector(0,0,0,0)
+            lepTLorentz.SetPtEtaPhiM(tightLeps25[0].pt, tightLeps25[0].eta, tightLeps25[0].phi, tightLeps25[0].mass)
+
+            if ret['nCentralJet30']>=3: # does not seem to work for njet =3 ??! # need to edit btag working point in the code...!! did not quickly find a twiki with official phys14 cmva working points
+                tempTopness = topness.GetTopness(p4_jets,bdisc_jets,lepTLorentz,metp4) #this is really slow!
+                if tempTopness <=0:
+                    print tempTopness, "this will fail"
+                ret['Topness'] = log(tempTopness) #this is really slow!
+        if len(mt2w_values)>0:
+            ret["MT2W"]=min(mt2w_values)
+        else:
+            ret["MT2W"]=-999
             
         return ret
 
