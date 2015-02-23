@@ -7,10 +7,10 @@ import itertools
 import PhysicsTools.Heppy.loadlibs
 import array
 
+ROOT.gInterpreter.GenerateDictionary("vector<TLorentzVector>","TLorentzVector.h;vector") #need this to be able to use topness code
 
 mt2wSNT = ROOT.heppy.mt2w_bisect.mt2w()
 topness = ROOT.Topness.Topness()
-ROOT.gInterpreter.GenerateDictionary("vector<TLorentzVector>","TLorentzVector.h;vector") #need this to be able to use topness code
 
 def getPhysObjectArray(j): # https://github.com/HephySusySW/Workspace/blob/72X-master/RA4Analysis/python/mt2w.py
   px = j.pt*cos(j.phi )
