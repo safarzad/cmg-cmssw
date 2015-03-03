@@ -56,14 +56,14 @@ function makeCard_2lss {
 
     # inclusive vs exclusive
     case $MOD in
-    inc) GO="${GO} -X exclusive --mcc bins/susy_2lssinc_lepchoice.txt" ;;
+    inc) GO="${GO} -X exclusive --mcc bins/susymultilepton/susy_2lssinc_lepchoice.txt" ;;
     esac;
 
     if [[ "$PRETEND" == "1" ]]; then
-        echo "making datacard $OUT from makeShapeCardsSusy.py mca-Phys14.txt bins/susy_2lss_sync.txt \"$EXPR\" \"$BINS\" $SYSTS $GO;"
+        echo "making datacard $OUT from makeShapeCardsSusy.py mca-Phys14.txt bins/susymultilepton/susy_2lss_sync.txt \"$EXPR\" \"$BINS\" $SYSTS $GO;"
     else
-        echo "making datacard $OUT from makeShapeCardsSusy.py mca-Phys14.txt bins/susy_2lss_sync.txt \"$EXPR\" \"$BINS\" $SYSTS $GO;"
-        python makeShapeCardsSusy.py mca-Phys14.txt bins/susy_2lss_sync.txt "$EXPR" "$BINS" $SYSTS -o $OUT $GO;
+        echo "making datacard $OUT from makeShapeCardsSusy.py mca-Phys14.txt bins/susymultilepton/susy_2lss_sync.txt \"$EXPR\" \"$BINS\" $SYSTS $GO;"
+        python makeShapeCardsSusy.py mca-Phys14.txt bins/susymultilepton/susy_2lss_sync.txt "$EXPR" "$BINS" $SYSTS -o $OUT $GO;
         echo "  -- done at $(date)";
     fi;
 }
@@ -113,7 +113,7 @@ if [[ "$1" == "2lss-2012" ]]; then
     echo "Done at $(date)";
 
 elif [[ "$1" == "2lss-2015" ]]; then
-    OPTIONS=" $OPTIONS -F sf/t $T/1_susyVars_2lssInc_v0/evVarFriend_{cname}.root "
+    OPTIONS=" $OPTIONS -F sf/t $T/1_susyVars_2lssInc_v2/evVarFriend_{cname}.root "
     SYSTS="syst/susyDummy.txt"
     CnC_expr="1+4*(met_pt>120)+(htJet40j>400)+2*(nJet40>=4)"
     CnC_bins="[0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5]"
@@ -146,7 +146,7 @@ elif [[ "$1" == "2lss-2015" ]]; then
     echo "Done at $(date)";
 
 elif [[ "$1" == "2lss-2015x" ]]; then
-    OPTIONS=" $OPTIONS -F sf/t $T/1_susyVars_2lssInc_v0/evVarFriend_{cname}.root "
+    OPTIONS=" $OPTIONS -F sf/t $T/1_susyVars_2lssInc_v2/evVarFriend_{cname}.root "
     SYSTS="syst/susyDummy.txt"
     CnC_expr="1+4*(met_pt>120)+(htJet40j>400)+2*(nJet40>=4)"
     CnC_bins="[0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5]"
