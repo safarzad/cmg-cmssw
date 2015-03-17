@@ -1,6 +1,5 @@
 from CMGTools.TTHAnalysis.treeReAnalyzer import *
 from ROOT import TLorentzVector, TVector2, std
-#, std
 import ROOT
 import time
 import itertools
@@ -23,10 +22,25 @@ def getPhysObjectArray(j): # https://github.com/HephySusySW/Workspace/blob/72X-m
 def mt_2(p4one, p4two):
     return sqrt(2*p4one.Pt()*p4two.Pt()*(1-cos(p4one.Phi()-p4two.Phi())))
 
+def GetZfromM(vector1,vector2,mass):
+    MT = sqrt(2*vector1.Pt()*vector2.Pt()*(1-cos(vector2.DeltaPhi(vector1))))
+    if (MT<mass):
+        Met2D = TVector2(vector2.Px(),vector2.Py())
+        Lep2D = TVector2(vector1.Px(),vector1.Py())
+        A = mass*mass/2.+Met2D*Lep2D
+        Delta = vector1.E()*vector1.E()*(A*A-Met2D.Mod2()*Lep2D.Mod2())
+        MetZ1 = (A*vector1.Pz()+sqrt(Delta))/Lep2D.Mod2()
+        MetZ2 = (A*vector1.Pz()-sqrt(Delta))/Lep2D.Mod2()
+    else:
+        MetZ1 =vector1.Pz()*vector2.Pt()/vector1.Pt()
+        MetZ2 =vector1.Pz()*vector2.Pt()/vector1.Pt()
+    return [MT,MetZ1,MetZ2]
+
+
 
 class EventVars1L:
     def __init__(self):
-        self.branches = [ "METCopyPt", "DeltaPhiLepW", "minDPhiBMET", "idxMinDPhiBMET", "mTClBPlusMET", "mTBJetMET", "mTLepMET", "mLepBJet", "METtoTopProjection",
+        self.branches = [ "METCopyPt", "DeltaPhiLepW", "minDPhiBMET", "idxMinDPhiBMET", "mTClBPlusMET", "mTBJetMET", "mTLepMET", "mLepBJet",
                          ("nTightLeps25","I"),("nTightMu25","I"),("nTightEl25","I"),("nVetoLeps10","I"),
                          ("tightLeps25idx","I",10,"nTightLeps25"),("tightMu25idx","I",10,"nTightMu25"),("tightEl25idx","I",10,"nTightEl25"),
                          ("vetoLeps10idx","I",10,"nVetoLeps10"),
@@ -34,7 +48,11 @@ class EventVars1L:
                          ("nBJetCMVAMedium30","I"),("BJetCMVAMedium30idx","I",50,"nBJetCMVAMedium30"),
                          "nGoodBJets_allJets", "nGoodBJets",
                          "LSLjetptGT80", "htJet30j", "htJet30ja",
-                          "MT2W", "Topness"
+                         ("lepBMass","F",50,"nBJetCMVAMedium30"), ("MTbnu","F",50,"nBJetCMVAMedium30"),("Mtop","F",50,"nBJetCMVAMedium30"), 
+                         ("MTtop","F",50,"nBJetCMVAMedium30"), ("METovTop","F",50,"nBJetCMVAMedium30"),"MTtopMin","MTbnubMin","lepBMassbMin",
+                         "lepBMassMin","MTtopbMin"  ,"MTbnuMin","METovTopMin","METovTopbMin",  ("METTopPhi","F",50,"nBJetCMVAMedium30"),"MTW",
+                         "MW1","MW2","MtopDecorMin", ("MtopDecor","F",50,"nBJetCMVAMedium30"),"MtopMin",
+                         "MT2W", "Topness"
                          ]
 
     
@@ -170,18 +188,96 @@ class EventVars1L:
         ret["mTLepMET"]  = mTLepMET
         ret["mLepBJet"]  = mLepBJet
         
-
         # projection of MET along (MET + lepton + (closest (to MET) BJet)) sum; needs to be double-checked...
-        METtoTopProjection = -999
-        if(idxMinDPhiBMET>=0 and ret['nTightLeps25']>=1) :
-            metV2  = ROOT.TVector2(0,0)
-            lepV2  = ROOT.TVector2(0,0)
-            bJetV2 = ROOT.TVector2(0,0)
-            metV2   .SetMagPhi(event.met_pt, event.met_phi)
-            lepV2   .SetMagPhi(tightLeps25[0].pt, tightLeps25[0].phi)
-            bJetV2  .SetMagPhi(jets[idxMinDPhiBMET].pt, jets[idxMinDPhiBMET].phi)
-            METtoTopProjection = (metV2*(metV2+lepV2+bJetV2))/(metV2*metV2)
-        ret["METtoTopProjection"]  = METtoTopProjection
+        MetZ1 = -9999
+        MetZ2 = -9999
+        MTW = -9999
+        MW1 = -9999
+        MW2 = -9999
+        if(ret['nTightLeps25']==1) :
+            NeutrZList = GetZfromM(tightLeps25[0].p4(),metp4,81)
+            MTW = NeutrZList[0]
+            MetZ1= NeutrZList[1]
+            MetZ2= NeutrZList[2]
+            neutrino1 = ROOT.TLorentzVector(0,0,0,0)
+            neutrino1.SetXYZM(metp4.Px(),metp4.Py(), MetZ1, 0)
+            neutrino2 = ROOT.TLorentzVector(0,0,0,0)
+            neutrino2.SetXYZM(metp4.Px(),metp4.Py(), MetZ2, 0)
+            MW1 = (neutrino1+tightLeps25[0].p4()).M()
+            MW2 = (neutrino2+tightLeps25[0].p4()).M()
+        ret["MTW"]  = MTW
+        ret["MW1"]  = MW1
+        ret["MW2"]  = MW2
+        # some extra plots
+        
+        MTbnu = []
+        lepBMass = []
+        MTtop = []
+        Mtop = []
+        METovTop = []
+        METTopPhi = []
+        MtopDecor = []
+        MtopDecorMin =9999
+        MtopMin =9999
+        MTbnuMin =9999
+        lepBMassMin=9999
+        MTtopMin=9999
+        METovTopMin=9999
+        MTbnubMin =-999
+        lepBMassbMin=-999
+        MTtopbMin=-999
+        METovTopbMin=-999
+    
+# for i,l in enumerate(leps):
+        
+        for i,bjet in  enumerate(BJetCMVAMedium30):
+            if(ret['nTightLeps25']==1) :
+                ThisMTnub = sqrt(2*event.met_pt*bjet.pt* (1-cos( metp4.DeltaPhi(bjet.p4() ))))               
+                MTbnu.append(ThisMTnub)
+                ThislepBMass = (tightLeps25[0].p4()+bjet.p4()).M()
+                lepBMass.append(ThislepBMass )
+                ThisMTtop =  sqrt( 81.*81. + ThislepBMass *ThislepBMass + ThisMTnub*ThisMTnub)
+                MTtop.append(ThisMTtop)  
+                ThisMetovTop =  event.met_pt/(metp4+tightLeps25[0].p4()+bjet.p4()).Pt()
+                METovTop.append(ThisMetovTop)
+                ThisMetTop = metp4.DeltaPhi(metp4+tightLeps25[0].p4()+bjet.p4())
+                METTopPhi.append(ThisMetTop)
+                if BJetCMVAMedium30idx[i]==idxMinDPhiBMET:
+                    MTbnubMin=ThisMTnub
+                    lepBMassbMin= ThislepBMass
+                    MTtopbMin=ThisMTtop
+                    METovTopbMin=ThisMetovTop
+                if MTtopMin > ThisMTtop:  MTtopMin = ThisMTtop
+                if lepBMassMin > ThislepBMass: lepBMassMin = ThislepBMass
+                if MTbnubMin >ThisMTnub: MTbnubMin  = ThisMTnub
+                if METovTopMin>ThisMetovTop:METovTopMin=ThisMetovTop
+                ThisMtop = (neutrino1+tightLeps25[0].p4()+bjet.p4()).M()
+                if(ThisMtop>(neutrino2+tightLeps25[0].p4()+bjet.p4()).M()): ThisMtop = (neutrino2+tightLeps25[0].p4()+bjet.p4()).M()
+                Mtop.append(ThisMtop)
+                if (MtopMin>ThisMtop):MtopMin=ThisMtop;
+                ThisMtopDecor  = sqrt((tightLeps25[0].p4()+bjet.p4()).M()*(tightLeps25[0].p4()+bjet.p4()).M()+ (neutrino1+bjet.p4()).M()*(neutrino1+bjet.p4()).M()+81*81)
+                if ThisMtopDecor > sqrt((tightLeps25[0].p4()+bjet.p4()).M()*(tightLeps25[0].p4()+bjet.p4()).M()+ (neutrino2+bjet.p4()).M()*(neutrino2+bjet.p4()).M()+81*81):
+                    ThisMtopDecor =  sqrt((tightLeps25[0].p4()+bjet.p4()).M()*(tightLeps25[0].p4()+bjet.p4()).M()+ (neutrino2+bjet.p4()).M()*(neutrino2+bjet.p4()).M()+81*81)
+                MtopDecor.append(ThisMtopDecor)
+                if(MtopDecorMin>ThisMtopDecor): MtopDecorMin=ThisMtopDecor
+        ret["MtopMin"] =MtopMin 
+        ret["MtopDecor"]=MtopDecor
+        ret["MtopDecorMin"]=MtopDecorMin
+        ret["Mtop"]=Mtop
+        ret["MTbnu"] =MTbnu
+        ret["lepBMass"]=lepBMass
+        ret["MTtop"]=MTtop
+        ret["METovTop"]=METovTop
+        ret["MTbnuMin"]=MTbnuMin
+        ret["lepBMassMin"]=lepBMassMin
+        ret["MTtopMin"]=MTtopMin
+        ret["MTbnubMin"]=MTbnubMin
+        ret["lepBMassbMin"]=lepBMassbMin
+        ret["MTtopbMin"]=MTtopbMin
+        ret["MTbnubMin"]=MTbnubMin
+        ret["METovTopMin"]=METovTopMin
+        ret["METovTopbMin"]=METovTopbMin
+        ret["METTopPhi"]=METTopPhi
 
 
         #add topness and mt2W-variable (timing issue with topness: slows down the friend tree production by a factor of ~3)
