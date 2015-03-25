@@ -41,9 +41,11 @@ def GetZfromM(vector1,vector2,mass):
 class EventVars1L:
     def __init__(self):
         self.branches = [ "METCopyPt", "DeltaPhiLepW", "minDPhiBMET", "idxMinDPhiBMET", "mTClBPlusMET", "mTBJetMET", "mTLepMET", "mLepBJet",
-                         ("nTightLeps25","I"),("nTightMu25","I"),("nTightEl25","I"),("nVetoLeps10","I"),
-                         ("tightLeps25idx","I",10,"nTightLeps25"),("tightMu25idx","I",10,"nTightMu25"),("tightEl25idx","I",10,"nTightEl25"),
-                         ("vetoLeps10idx","I",10,"nVetoLeps10"),
+                         ("nTightLeps25","I"),#("nTightLeps10","I"),
+                         ("nTightMu25","I"),("nTightEl25","I"),("nVetoLeps10","I"),#("nVetoLeps10T10","I"),
+                         ("tightLeps25idx","I",10,"nTightLeps25"),#("tightLeps10idx","I",10,"nTightLeps10"),
+                         ("tightMu25idx","I",10,"nTightMu25"),
+                         ("tightEl25idx","I",10,"nTightEl25"),("vetoLeps10idx","I",10,"nVetoLeps10"),#("vetoLeps10T10idx","I",10,"nVetoLeps10T10"),
                          ("nCentralJet30","I"),("centralJet30idx","I",100,"nCentralJet30"),
                          ("nBJetCMVAMedium30","I"),("BJetCMVAMedium30idx","I",50,"nBJetCMVAMedium30"),
                          "nGoodBJets_allJets", "nGoodBJets",
@@ -52,7 +54,8 @@ class EventVars1L:
                          ("MTtop","F",50,"nBJetCMVAMedium30"), ("METovTop","F",50,"nBJetCMVAMedium30"),"MTtopMin","MTbnubMin","lepBMassbMin",
                          "lepBMassMin","MTtopbMin"  ,"MTbnuMin","METovTopMin","METovTopbMin",  ("METTopPhi","F",50,"nBJetCMVAMedium30"),"MTW",
                          "MW1","MW2","MtopDecorMin", ("MtopDecor","F",50,"nBJetCMVAMedium30"),"MtopMin",
-                         "MT2W", "Topness"
+                         "MT2W", "Topness",
+                         "nHighPtTopTag", "nHighPtTopTagPlusTau23"
                          ]
 
     
@@ -65,6 +68,8 @@ class EventVars1L:
         # make python lists as Collection does not support indexing in slices
         leps = [l for l in Collection(event,"LepGood","nLepGood")]
         jets = [j for j in Collection(event,"Jet","nJet")]
+
+        fatjets = [j for j in Collection(event,"FatJet","nFatJet")]
 
         njet = len(jets); nlep = len(leps)
         
@@ -81,15 +86,21 @@ class EventVars1L:
         
         tightLeps25 = []
         tightLeps25idx = []
+        tightLeps10 = []
+        tightLeps10idx = []
         tightMu25 = []
         tightMu25idx = []
         tightEl25 = []
         tightEl25idx = []
         vetoLeps10 = []
         vetoLeps10idx = []
+        vetoLeps10T10 = []
+        vetoLeps10T10idx = []
         for i,l in enumerate(leps):
-            tightMu = l.pt>25 and l.relIso03<muo_relisoCut and abs(l.pdgId)==13 and l.tightId==1
-            tightEl = l.pt>25 and l.relIso03<ele_relisoCut and abs(l.pdgId)==11 and l.tightId >2 
+#            tightMu = l.pt>25 and l.relIso03<muo_relisoCut and abs(l.pdgId)==13 and l.tightId==1
+#            tightEl = l.pt>25 and l.relIso03<ele_relisoCut and abs(l.pdgId)==11 and l.tightId >2 
+            tightMu = l.pt>10 and l.relIso03<muo_relisoCut and abs(l.pdgId)==13 and l.tightId==1
+            tightEl = l.pt>10 and l.relIso03<ele_relisoCut and abs(l.pdgId)==11 and l.tightId >2 
             if tightMu:
                 tightMu25.append(l); tightMu25idx.append(i)
                 tightLeps25.append(l); tightLeps25idx.append(i)
@@ -98,16 +109,27 @@ class EventVars1L:
                 tightLeps25.append(l); tightLeps25idx.append(i)
             elif l.pt>10:
                 vetoLeps10.append(l); vetoLeps10idx.append(i)
+#            tightMu10 = l.pt>10 and l.relIso03<muo_relisoCut and abs(l.pdgId)==13 and l.tightId==1
+#            tightEl10 = l.pt>10 and l.relIso03<ele_relisoCut and abs(l.pdgId)==11 and l.tightId >2 
+#            if tightMu10 or tightEl10:
+#                tightLeps10.append(l); tightLeps10idx.append(i)
+#            elif l.pt>10:
+#                vetoLeps10T10.append(l); vetoLeps10T10idx.append(i)
+                
 
         ret = { 'nTightLeps25'   : len(tightLeps25) } #initialize the dictionary with a first entry
+#        ret['nTightLeps10']  = len(tightLeps10)
         ret['nTightMu25']  = len(tightMu25)
         ret['nTightEl25']  = len(tightEl25)
         ret['nVetoLeps10'] = len(vetoLeps10)
+#        ret['nVetoLeps10T10'] = len(vetoLeps10T10)
         
         ret['tightLeps25idx'] = tightLeps25idx
+#        ret['tightLeps10idx'] = tightLeps10idx
         ret['tightMu25idx']   = tightMu25idx
         ret['tightEl25idx']   = tightEl25idx
         ret['vetoLeps10idx']  = vetoLeps10idx
+#        ret['vetoLeps10T10idx']  = vetoLeps10T10idx
         
 
         centralJet30 = []
@@ -333,6 +355,16 @@ class EventVars1L:
         else:
             ret["MT2W"]=-999
             
+        ret['nHighPtTopTag']=0        
+        ret['nHighPtTopTagPlusTau23']=0        
+        for i,j in enumerate(fatjets):
+          if j.nSubJets >2 and j.minMass>50 and j.topMass>140 and j.topMass<250:
+            ret['nHighPtTopTag'] += 1
+            if j.tau3/j.tau2 < 0.6:
+              ret['nHighPtTopTagPlusTau23'] += 1
+    
+
+
         return ret
 
 if __name__ == '__main__':

@@ -42,8 +42,8 @@ from CMGTools.TTHAnalysis.tools.eventVars_1l import EventVars1L
 MODULES.append( ('1l_Basics', EventVars1L()) )
 from CMGTools.TTHAnalysis.tools.eventVars_1l_genLevel import EventVars1LGenLevel 
 MODULES.append( ('1l_BasicsGen', EventVars1LGenLevel()) )
-#from CMGTools.TTHAnalysis.tools.resolvedTopTagVars_1l import resolvedTopTagVars1l 
-#MODULES.append( ('1l_resolvedTopTagVars', resolvedTopTagVars1l()) )
+from CMGTools.TTHAnalysis.tools.resolvedTopTagVars_1l import resolvedTopTagVars1l 
+MODULES.append( ('1l_resolvedTopTagVars', resolvedTopTagVars1l()) )
 
 
  
