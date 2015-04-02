@@ -138,8 +138,8 @@ class TopPermutation:
             sum += jets[idsWithoutBestBTag[1]].p4() # pair b-jet with lower pt jet (of the two W jet cands) to suppress bkg
             rejectQCD = sum.M()/self.m123
         
-        self.passesWBTagCuts = True if rejectQCD > 0.35 and RMinCut < self.mNonB/self.m123 < RMaxCut else False
-        self.passesTopWBTagCuts = True if rejectQCD > 0.35 and RMinCut < self.mNonB/self.m123 < RMaxCut and 80. < self.m123 < 270. else False
+        self.passesWBTagCuts = True if rejectQCD > 0.35 and RMinCut < self.mNonB/self.m123 < RMaxCut and jets[self.ids[self.sortIdsByBTag[0]]].btagCMVA>0.732 else False
+        self.passesTopWBTagCuts = True if rejectQCD > 0.35 and RMinCut < self.mNonB/self.m123 < RMaxCut and 80. < self.m123 < 270. and jets[self.ids[self.sortIdsByBTag[0]]].btagCMVA>0.732 else False
 
         self.distanceToMTop = abs(self.m123-173.5)
 
@@ -150,9 +150,10 @@ class TopPermutation:
 
 class resolvedTopTagVars1l:
     def __init__(self):
-        self.branches = [("nTopTags","I"),("nTopBTags","I"),("nTopTagsR2","I"),("nTopTagCandsNoIter","I"),
+        self.branches = [("nTopTags","I"),("nTopBTags","I"),("nTopTagCandsNoIter","I"),
                          ("bestM123TopTag","F",10,"nTopTags"),("bestpt123TopTag","F",10,"nTopTags"),
-                         ("bestM123TopTagR2","F",10,"nTopTagsR2"),("bestpt123TopTagR2","F",10,"nTopTagsR2"),
+#                         ("nTopTagsR2","I"),
+#                         ("bestM123TopTagR2","F",10,"nTopTagsR2"),("bestpt123TopTagR2","F",10,"nTopTagsR2"),
                          ("bestM123BTagTopTag","F",10,"nTopBTags"),("bestpt123BTagTopTag","F",10,"nTopBTags"),
                          ("betterQGLTopTagidx","F",10,"nTopTags"), ("worseQGLTopTagidx","F",10,"nTopTags"),
                          ("bestBTagTopTagidx","F",10,"nTopTags"),("kinBCandidateidx","F",10,"nTopTags")
@@ -175,12 +176,16 @@ class resolvedTopTagVars1l:
         jetlist = [i for i, jet in enumerate(jets)]
 
         finalTopPermutations = collectFinalTopPermutations(jetlist,jets)
-        finalTopR2Permutations = collectFinalTopPermutations(jetlist,jets, False, 2)
+#        finalTopR2Permutations = collectFinalTopPermutations(jetlist,jets, False, 2)
         finalTopBTagPermutations = collectFinalTopPermutations(jetlist,jets, True)
         noIterationCollectAllTopPermutations = collectFinalTopPermutations(jetlist,jets, False, 1.5, False)
+
+#        print "strt"
+#        print finalTopPermutations
+#        print finalTopBTagPermutations
         
         ret = { 'nTopTags'   : len(finalTopPermutations) } #initialize the dictionary with a first entry
-        ret['nTopTagsR2'] = len(finalTopR2Permutations)
+#        ret['nTopTagsR2'] = len(finalTopR2Permutations)
         ret['nTopBTags'] = len(finalTopBTagPermutations)
         ret['nTopTagCandsNoIter'] = len(noIterationCollectAllTopPermutations)
 
@@ -188,9 +193,9 @@ class resolvedTopTagVars1l:
         
         ret['bestM123TopTag'] = [perm.m123 for perm in finalTopPermutations]
         ret['bestpt123TopTag'] = [perm.pt123 for perm in finalTopPermutations]
-        ret['bestM123TopTagR2'] = [perm.m123 for perm in finalTopR2Permutations]
+#        ret['bestM123TopTagR2'] = [perm.m123 for perm in finalTopR2Permutations]
     
-        ret['bestpt123TopTagR2'] = [perm.pt123 for perm in finalTopR2Permutations]
+#        ret['bestpt123TopTagR2'] = [perm.pt123 for perm in finalTopR2Permutations]
         ret['bestM123BTagTopTag'] = [perm.m123 for perm in finalTopBTagPermutations]
         ret['bestpt123BTagTopTag'] = [perm.pt123 for perm in finalTopBTagPermutations]
         
