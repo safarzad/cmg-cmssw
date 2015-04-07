@@ -98,6 +98,10 @@ class EventVars1L:
         centralEta = 2.4
 
         muo_minirelisoCut = 0.2
+        ele_minirelisoCut = 0.1
+        
+        goodEl_lostHits = 1 
+        goodEl_sip3d = 4
 
         goodEl_mvaPhys14_eta08_T = 0.73;
         goodEl_mvaPhys14_eta104_T = 0.57;
@@ -119,9 +123,12 @@ class EventVars1L:
 #            tightEl = l.pt>25 and l.relIso03<ele_relisoCut and abs(l.pdgId)==11 and l.tightId >2 
             tightMu = l.pt>5 and l.miniRelIso<muo_minirelisoCut and abs(l.pdgId)==13 and l.mediumMuonId==1 and l.sip3d<4.0
             tightEl = False
-            if l.pt>5 and abs(l.eta)<0.8 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta08_T: tightEl = True
-            elif l.pt>5 and abs(l.eta)>=0.8 and abs(l.eta)<1.44 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta104_T: tightEl = True
-            elif l.pt>5 and abs(l.eta)>=1.57 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta204_T: tightEl = True
+            idElEta = False
+            if l.pt>5 and abs(l.eta)<0.8 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta08_T: idElEta = True
+            elif l.pt>5 and abs(l.eta)>=0.8 and abs(l.eta)<1.44 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta104_T: idElEta = True
+            elif l.pt>5 and abs(l.eta)>=1.57 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta204_T: idElEta = True
+            if l.pt > 5 and (abs(l.eta) < 1.44 or abs(l.eta) > 1.57) and (l.miniRelIso< ele_minirelisoCut and idElEta) and l.lostHits <= goodEl_lostHits and  l.convVeto and l.sip3d < goodEl_sip3d:
+              tightEl = True
             if tightMu:
                 tightMu25.append(l); tightMu25idx.append(i)
                 tightLeps25.append(l); tightLeps25idx.append(i)
