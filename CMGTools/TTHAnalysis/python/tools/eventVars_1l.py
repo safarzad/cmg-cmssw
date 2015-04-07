@@ -46,7 +46,7 @@ def minValueForIdxList(values,idxlist):
 
 class EventVars1L:
     def __init__(self):
-        self.branches = [ "METCopyPt", "DeltaPhiLepW", "minDPhiBMET", "idxMinDPhiBMET", "mTClBPlusMET", "mTBJetMET", "mTLepMET", "mLepBJet",
+        self.branches = [ "METCopyPt", "DeltaPhiLepW", "minDPhiBMET", "minDPhiJMET", "idxMinDPhiBMET", "mTClBPlusMET", "mTBJetMET", "mTLepMET", "mLepBJet",
                          ("nTightLeps25","I"),
                          ("nTightMu25","I"),("nTightEl25","I"),("nVetoLeps10","I"),
                          ("tightLeps25idx","I",10,"nTightLeps25"),("tightLeps25_DescFlag","I",10,"nTightLeps25"),
@@ -98,6 +98,7 @@ class EventVars1L:
         centralEta = 2.4
 
         muo_minirelisoCut = 0.2
+        Lep_minirelisoCut = 0.4
         ele_minirelisoCut = 0.1
         
         goodEl_lostHits = 1 
@@ -118,24 +119,36 @@ class EventVars1L:
         vetoLeps10T10 = []
         vetoLeps10T10idx = []
         for i,l in enumerate(leps):
-          if(abs(l.eta)<2.4):
+          if(abs(l.eta)<2.5):
 #            tightMu = l.pt>25 and l.relIso03<muo_relisoCut and abs(l.pdgId)==13 and l.tightId==1
 #            tightEl = l.pt>25 and l.relIso03<ele_relisoCut and abs(l.pdgId)==11 and l.tightId >2 
-            tightMu = l.pt>5 and l.miniRelIso<muo_minirelisoCut and abs(l.pdgId)==13 and l.mediumMuonId==1 and l.sip3d<4.0
+            IsoMupT = False
+            tightMu = False
+            if l.pt>5 and l.pt<10 and l.miniRelIso<Lep_minirelisoCut and abs(l.pdgId)==13: IsoMupT = True
+            elif l.pt>15 and l.miniRelIso<muo_minirelisoCut and abs(l.pdgId)==13: IsoMupT = True
+
+            if l.pt>5 and abs(l.pdgId)==13 and (IsoMupT and l.mediumMuonId==1) and l.sip3d<4.0: tightMu = True 
+            
             tightEl = False
             idElEta = False
-            if l.pt>5 and abs(l.eta)<0.8 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta08_T: idElEta = True
-            elif l.pt>5 and abs(l.eta)>=0.8 and abs(l.eta)<1.44 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta104_T: idElEta = True
-            elif l.pt>5 and abs(l.eta)>=1.57 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta204_T: idElEta = True
-            if l.pt > 5 and (abs(l.eta) < 1.44 or abs(l.eta) > 1.57) and (l.miniRelIso< ele_minirelisoCut and idElEta) and l.lostHits <= goodEl_lostHits and  l.convVeto and l.sip3d < goodEl_sip3d:
+            IsoElpT = False
+            if l.pt>5 and  abs(l.pdgId)==11 and abs(l.eta)<0.8 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta08_T: idElEta = True
+            elif l.pt>5 and abs(l.pdgId)==11 and abs(l.eta)>=0.8 and abs(l.eta)<1.44 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta104_T: idElEta = True
+            elif l.pt>5 and abs(l.pdgId)==11 and abs(l.eta)>=1.57 and l.mvaIdPhys14 > goodEl_mvaPhys14_eta204_T: idElEta = True
+
+            if l.pt>5 and l.pt<15 and l.miniRelIso<Lep_minirelisoCut and abs(l.pdgId)==11: IsoElpT = True
+            elif l.pt>15 and l.miniRelIso<ele_minirelisoCut and abs(l.pdgId)==11: IsoElpT = True
+
+            if l.pt>5 and abs(l.pdgId)==11 and abs(l.eta)<2.4 and (abs(l.eta) < 1.44 or abs(l.eta) > 1.57) and (IsoElpT and idElEta) and l.lostHits <= goodEl_lostHits and  l.convVeto and l.sip3d < goodEl_sip3d:
               tightEl = True
+
             if tightMu:
                 tightMu25.append(l); tightMu25idx.append(i)
                 tightLeps25.append(l); tightLeps25idx.append(i)
             elif tightEl:
                 tightEl25.append(l); tightEl25idx.append(i)
                 tightLeps25.append(l); tightLeps25idx.append(i)
-            elif l.pt>10:
+            elif l.pt>5:
                 vetoLeps10.append(l); vetoLeps10idx.append(i)
                 
 
@@ -207,6 +220,16 @@ class EventVars1L:
 
         ret["idxMinDPhiBMET"] = idxMinDPhiBMET
         ret["minDPhiBMET"] = minDPhiBMET
+
+        # min deltaPhi between a jet (first three jets) and MET; needs to be double-checked
+        minDPhiJMET    = 100
+        for i, jet in enumerate(jets[:3]):
+           dPhiJMET = abs(jet.p4().DeltaPhi(metp4))
+           if dPhiJMET<minDPhiJMET:
+             minDPhiJMET=dPhiJMET
+
+        ret["minDPhiJMET"] = minDPhiJMET
+
 
 
         # transverse mass of (closest (to MET) BJet, MET), (closest (to MET) BJet, lepton), 
