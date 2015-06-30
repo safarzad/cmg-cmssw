@@ -46,7 +46,7 @@ ttHLepSkim.maxLeptons = 999
 # --- JET-LEPTON CLEANING ---
 jetAna.minLepPt = 10
 
-jetAna.mcGT = "PHYS14_V4_MC"
+jetAna.mcGT = "Summer15_V5_MC"
 jetAna.doQG = True
 jetAna.smearJets = False #should be false in susycore, already
 jetAna.recalibrateJets = True #should be true in susycore, already
@@ -54,6 +54,8 @@ metAna.recalibrate = False #should be false in susycore, already
 
 isoTrackAna.setOff=False
 
+# store all taus by default
+genAna.allGenTaus = True
 
 from CMGTools.TTHAnalysis.analyzers.ttHLepEventAnalyzer import ttHLepEventAnalyzer
 ttHEventAna = cfg.Analyzer(
@@ -117,7 +119,7 @@ selectedComponents = [
 #TTJets,
 #TTJets_50ns
 TTJets_LO,
-TTJets_LO_50ns
+#TTJets_LO_50ns
 ]
 
 
@@ -132,7 +134,7 @@ sequence = cfg.Sequence(susyCoreSequence+[
 
 
 #-------- HOW TO RUN
-test = 2
+test = 1
 if test==1:
 	# test a single component, using a single thread.
 	comp = TTJets
