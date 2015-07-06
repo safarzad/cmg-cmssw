@@ -83,10 +83,22 @@ ttHReclusterJets = cfg.Analyzer(
 	etaSubJet = 5.0,
 			)
 
-#from CMGTools.TTHAnalysis.samples.samples_13TeV_PHYS14  import *
+from CMGTools.RootTools.samples.triggers_13_TeV_Spring15 import *
 
 triggerFlagsAna.triggerBits = {
 #put trigger here for data
+	'HT350' : triggers_HT350,
+	'HT900' : triggers_HT900,
+	'MET170' : triggers_MET170,
+	'HTMET' : triggers_HTMET,
+	'SingleMu' : triggers_ref_mu,
+	'SingleEl' : triggers_ref_el,
+	'MuHT600' : triggers_mu_ht600,
+	'MuHT400MET70' : triggers_mu_ht400_met70,
+	'MuMET120' : triggers_mu_met120,
+	'EleHT600' : triggers_el_ht600,
+	'EleHT400MET70' : triggers_el_ht400_met70,
+	'EleHT200' :triggers_el_ht200
 }
 
 # Tree Producer
@@ -107,13 +119,11 @@ treeProducer = cfg.Analyzer(
 
 #-------- SAMPLES AND TRIGGERS -----------
 
-# -- old PHYS14
-#from CMGTools.TTHAnalysis.samples.samples_13TeV_PHYS14 import *
+from CMGTools.RootTools.samples.samples_13TeV_PHYS14 import *
 #selectedComponents = [QCD_HT_100To250, QCD_HT_250To500, QCD_HT_500To1000, QCD_HT_1000ToInf,TTJets, TTWJets, TTZJets, TTH, SMS_T1tttt_2J_mGl1500_mLSP100, SMS_T1tttt_2J_mGl1200_mLSP800] + SingleTop + WJetsToLNuHT + DYJetsM50HT + T5ttttDeg + T1ttbbWW + T5qqqqWW
 
 # -- new 74X samples
 from CMGTools.TTHAnalysis.samples.samples_13TeV_74X import *
-
 
 selectedComponents = [
 #TTJets,
@@ -134,7 +144,7 @@ sequence = cfg.Sequence(susyCoreSequence+[
 
 
 #-------- HOW TO RUN
-test = 1
+test = 3
 if test==1:
 	# test a single component, using a single thread.
 	comp = TTJets
@@ -151,6 +161,16 @@ elif test==3:
 	# run all components (1 thread per component).
 	for comp in selectedComponents:
 		comp.splitFactor = len(comp.files)
+
+elif test=="data":
+	from CMGTools.TTHAnalysis.samples.samples_13TeV_Data import *
+	selectedComponents = [ privEGamma2015A ]
+
+	for comp in selectedComponents:
+		comp.splitFactor = 1
+		comp.fineSplitFactor = 1
+		comp.files = comp.files[:1]
+
 
 from PhysicsTools.HeppyCore.framework.eventsfwlite import Events
 config = cfg.Config( components = selectedComponents,
