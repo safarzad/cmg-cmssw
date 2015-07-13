@@ -76,13 +76,6 @@ ttHSTSkimmer = cfg.Analyzer(
         minST = 200,
         )
 
-from CMGTools.TTHAnalysis.analyzers.ttHReclusterJetsAnalyzer import ttHReclusterJetsAnalyzer
-ttHReclusterJets = cfg.Analyzer(
-        ttHReclusterJetsAnalyzer, name="ttHReclusterJetsAnalyzer",
-        pTSubJet = 30,
-        etaSubJet = 5.0,
-        )
-
 #from CMGTools.RootTools.samples.triggers_13TeV_Spring15 import * # central trigger list
 from CMGTools.RootTools.samples.triggers_13TeV_Spring15_1l import *
 
@@ -97,7 +90,8 @@ triggerFlagsAna.triggerBits = {
         'Had' : triggers_had,
         ## muon
         'SingleMu' : triggers_1mu,
-        'MuNoIso' : trigger_1mu_noiso,
+        'Mu45NoIso' : trigger_1mu_noiso_r,
+        'Mu50NoIso' : trigger_1mu_noiso_w,
         'MuHT600' : triggers_mu_ht600,
         'MuHT400MET70' : triggers_mu_ht400_met70,
         'MuMET120' : triggers_mu_met120,
@@ -143,7 +137,7 @@ selectedComponents = [
         #TTJets,
         #TTJets_50ns
         #TTJets_LO,
-        #TTJets_LO_50ns,
+        TTJets_LO_50ns,
 	TTJets_LO_25ns
         ]
 
@@ -153,7 +147,7 @@ selectedComponents = [
 sequence = cfg.Sequence(susyCoreSequence+[
                 ttHEventAna,
                 #ttHSTSkimmer,
-                ttHReclusterJets,
+                #ttHReclusterJets,
                 treeProducer,
                 ])
 
