@@ -131,9 +131,13 @@ treeProducer = cfg.Analyzer(
 #selectedComponents = [QCD_HT_100To250, QCD_HT_250To500, QCD_HT_500To1000, QCD_HT_1000ToInf,TTJets, TTWJets, TTZJets, TTH, SMS_T1tttt_2J_mGl1500_mLSP100, SMS_T1tttt_2J_mGl1200_mLSP800] + SingleTop + WJetsToLNuHT + DYJetsM50HT + T5ttttDeg + T1ttbbWW + T5qqqqWW
 
 # -- new 74X samples
-from CMGTools.RootTools.samples.samples_13TeV_74X import *
+#from CMGTools.RootTools.samples.samples_13TeV_74X import *
+# -- samples at DESY
+from CMGTools.SUSYAnalysis.samples.samples_13TeV_74X_desy import *
 
 selectedComponents = [
+	T1tttt_mGo1500_mChi100,
+	T1tttt_mGo1200_mChi800
         #TTJets,
         #TTJets_50ns
         #TTJets_LO,
@@ -153,7 +157,7 @@ sequence = cfg.Sequence(susyCoreSequence+[
 
 
 #-------- HOW TO RUN
-test = "data"
+test = 2
 if test==1:
         # test a single component, using a single thread.
         comp = TTJets
@@ -164,7 +168,7 @@ elif test==2:
         # test all components (1 thread per component).
         for comp in selectedComponents:
                 comp.splitFactor = 1
-                comp.fineSplitFactor = 10
+                comp.fineSplitFactor = 1
                 comp.files = comp.files[:1]
 elif test==3:
         # run all components (1 thread per component).
@@ -172,23 +176,13 @@ elif test==3:
                 comp.splitFactor = len(comp.files)
 
 elif test=="data":
-        #from CMGTools.RootTools.samples.samples_13TeV_Data import *
-        #selectedComponents = [ privEGamma2015A ]
-	from CMGTools.RootTools.samples.samples_13TeV_DATA2015 import *
-	selectedComponents = [ SingleElectron_Run2015B ]
-
-	eventFlagsAna.processName = 'HLT'
-	jetAna.recalibrateJets = False
-
-	for comp in dataSamples:
-		comp.isMC = False
-		comp.isData = True
-
+        from CMGTools.RootTools.samples.samples_13TeV_Data import *
+        selectedComponents = [ privEGamma2015A ]
 
         for comp in selectedComponents:
                 comp.splitFactor = 1
-                comp.fineSplitFactor = 10
-                #comp.files = comp.files[:1]
+                comp.fineSplitFactor = 1
+                comp.files = comp.files[:1]
 
 
 from PhysicsTools.HeppyCore.framework.eventsfwlite import Events
