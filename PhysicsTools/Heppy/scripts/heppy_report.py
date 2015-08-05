@@ -21,7 +21,7 @@ def root2map(dir,ana,treename):
         else:
             jsonind[run].append(lumi)
 
-    # remove duplicates via set
+    # remove duplicates
     for run in jsonind:
         jsonind[run] =  list(set(jsonind[run]))
 
