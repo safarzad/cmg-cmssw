@@ -3,6 +3,11 @@
 from CMGTools.TTHAnalysis.plotter.mcAnalysis import *
 import itertools
 
+if "/bin2Dto1Dlib_cc.so" not in ROOT.gSystem.GetLibraries():
+    ROOT.gROOT.ProcessLine(".L %s/src/CMGTools/TTHAnalysis/python/plotter/bin2Dto1Dlib.cc+" % os.environ['CMSSW_BASE']);
+if "/fakeRate_cc.so" not in ROOT.gSystem.GetLibraries(): 
+    ROOT.gROOT.ProcessLine(".L %s/src/CMGTools/TTHAnalysis/python/plotter/fakeRate.cc+" % os.environ['CMSSW_BASE']);
+
 SAFE_COLOR_LIST=[
 ROOT.kBlack, ROOT.kRed, ROOT.kGreen+2, ROOT.kBlue, ROOT.kMagenta+1, ROOT.kOrange+7, ROOT.kCyan+1, ROOT.kGray+2, ROOT.kViolet+5, ROOT.kSpring+5, ROOT.kAzure+1, ROOT.kPink+7, ROOT.kOrange+3, ROOT.kBlue+3, ROOT.kMagenta+3, ROOT.kRed+2,
 ]
@@ -73,6 +78,22 @@ def getDataPoissonErrors(h, drawZeroBins=False, drawXbars=False):
     ret.SetMarkerStyle(h.GetMarkerStyle())
     return ret
 
+def PrintHisto(h):
+    if not h:
+        return
+    print h.GetName()
+    c=[]
+    if "TH1" in h.ClassName():
+        for i in xrange(h.GetNbinsX()):
+            c.append((h.GetBinContent(i+1),h.GetBinError(i+1)))
+    elif "TH2" in h.ClassName():
+        for i in xrange(h.GetNbinsX()):
+            for j in xrange(h.GetNbinsY()):
+                c.append((h.GetBinContent(i+1,j+1),h.GetBinError(i+1,j+1)))
+    else:
+        print 'not th1 or th2'
+    print c
+
 def doSpam(text,x1,y1,x2,y2,align=12,fill=False,textSize=0.033,_noDelete={}):
     cmsprel = ROOT.TPaveText(x1,y1,x2,y2,"NDC");
     cmsprel.SetTextSize(textSize);
@@ -124,7 +145,7 @@ def reMax(hist,hist2,islog,factorLin=1.3,factorLog=2.0):
           max2 = max(max2, (hist2.GetBinContent(b) + hist2.GetBinError(b))*(factorLog if islog else factorLin))
     if max2 > max0:
         max0 = max2;
-        if islog: hist.GetYaxis().SetRangeUser(0.9,max0)
+        if islog: hist.GetYaxis().SetRangeUser(0.5,max0)
         else:     hist.GetYaxis().SetRangeUser(0,max0)
 
 def doDataNorm(pspec,pmap):
@@ -619,7 +640,8 @@ class PlotMaker:
                 if doRatio: ROOT.gStyle.SetPaperSize(20.,25.)
                 else:       ROOT.gStyle.SetPaperSize(20.,20.)
                 # create canvas
-                c1 = ROOT.TCanvas(pspec.name+"_canvas", pspec.name, 600, (750 if doRatio else 600))
+                #c1 = ROOT.TCanvas(pspec.name+"_canvas", pspec.name, 600, (750 if doRatio else 600))
+                c1 = ROOT.TCanvas(pspec.name+"_canvas", pspec.name, (750 if doRatio else 600), (750 if doRatio else 600))
                 c1.Draw()
                 p1, p2 = c1, None # high and low panes
                 # set borders, if necessary create subpads
@@ -654,7 +676,7 @@ class PlotMaker:
                     total.SetMaximum(maximum)
                 elif islog: #plain log without extra labels
                     total.SetMaximum(2*total.GetMaximum())
-                    total.SetMinimum(0.01) # default min value for logy
+                    total.SetMinimum(0.05) # default min value for logy
                     if pspec.hasOption('YMin'): total.SetMinimum(pspec.getOption('YMin',1.0))
                 else: total.SetMinimum(0)
                 total.Draw("HIST")
@@ -687,7 +709,7 @@ class PlotMaker:
                         doStatTests(totalSyst, pmap['data'], options.doStatTests, legendCorner=pspec.getOption('Legend','TR'))
                 if pspec.hasOption('YMin') and pspec.hasOption('YMax'):
                     total.GetYaxis().SetRangeUser(pspec.getOption('YMin',1.0), pspec.getOption('YMax',1.0))
-                legendCutoff = pspec.getOption('LegendCutoff', 1e-5 if c1.GetLogy() else 1e-2)
+                legendCutoff = pspec.getOption('LegendCutoff', 0 if c1.GetLogy() else 1e-2)
                 if self._options.plotmode == "norm": legendCutoff = 0 
                 doLegend(pmap,mca,corner=pspec.getOption('Legend','TR'),
                                   cutoff=legendCutoff, mcStyle=("F" if self._options.plotmode == "stack" else "L"),
@@ -756,13 +778,13 @@ class PlotMaker:
                             dump.close()
                         else:
                             if "TH2" in total.ClassName() or "TProfile2D" in total.ClassName():
-                                for p in mca.listSignals(allProcs=True) + mca.listBackgrounds(allProcs=True) + ["signal", "background"]:
+                                for p in mca.listSignals(allProcs=True) + mca.listBackgrounds(allProcs=True) + ["signal", "background", "data"]:
                                     if p not in pmap: continue
                                     plot = pmap[p]
                                     c1.SetRightMargin(0.20)
                                     plot.SetContour(100)
-                                    plot.Draw("COLZ")
-                                    c1.Print("%s/%s_%s.%s" % (fdir, pspec.name if not options.out else options.out + "_" + pspec.name, p, ext))
+                                    plot.Draw("COLZ TEXT45")
+                                    c1.Print("%s/%s_%s.%s" % (fdir, pspec.name, p, ext))
                             else:
                                 c1.Print("%s/%s.%s" % (fdir, pspec.name if not options.out else options.out + "_" + pspec.name, ext))
 
