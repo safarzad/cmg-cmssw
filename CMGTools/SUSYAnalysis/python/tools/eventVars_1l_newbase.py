@@ -85,6 +85,7 @@ goodMu_sip3d = 4
 
 class EventVars1L_base:
     def __init__(self):
+
         self.branches = [
             ## general event info
             'Run','Event','Lumi','Xsec',
@@ -99,20 +100,25 @@ class EventVars1L_base:
             ## MET
             'MET','LT','ST',
             "DeltaPhiLepW", 'dPhi','Lp',
+            # no HF stuff
+            'METNoHF', 'LTNoHF', 'dPhiNoHF',
             ## jets
             'HT','nJet','nBJet',
-             "htJet30j", "htJet30ja",
+            "htJet30j", "htJet30ja",
+            'Jet1_pt','Jet2_pt',
             ## top tags
             "nHighPtTopTag", "nHighPtTopTagPlusTau23",
             ## special Vars
             "LSLjetptGT80", # leading + subl. jet pt > 80
             'isSR', # is it Signal or Control region
-            'Mll' #di-lepton mass
+            'Mll', #di-lepton mass
+            'METfilters',
+            #Datasets
+            'PD_JetHT', 'PD_SingleEle', 'PD_SingleMu'
             ]
 
     def listBranches(self):
         return self.branches[:]
-
 
     def __call__(self,event,keyvals):
 
@@ -124,6 +130,21 @@ class EventVars1L_base:
                 ret[name] = []
             elif type(name) == 'str':
                 ret[name] = -999
+
+        ##############################
+        ##############################
+        # DATASET FLAG
+        # -- needs to be adjusted manually
+        ##############################
+        if event.isData:
+            ret['PD_JetHT'] = 1
+            ret['PD_SingleEle'] = 0
+            ret['PD_SingleMu'] = 0
+        else:
+            ret['PD_JetHT'] = 0
+            ret['PD_SingleEle'] = 0
+            ret['PD_SingleMu'] = 0
+        ##############################
 
         # copy basic event info:
         ret['Run'] = event.run
@@ -147,10 +168,17 @@ class EventVars1L_base:
         ## make MET
         metp4 = ROOT.TLorentzVector(0,0,0,0)
         metp4.SetPtEtaPhiM(event.met_pt,event.met_eta,event.met_phi,event.met_mass)
-        #pmiss = array.array('d',[event.met_pt * cos(event.met_phi), event.met_pt * sin(event.met_phi)] )
-
-        #plain copy of MET pt (just as an example and cross-check for proper friend tree production)
         ret["MET"] = metp4.Pt()
+
+        ## MET NO HF
+        metNoHFp4 = ROOT.TLorentzVector(0,0,0,0)
+        metNoHFp4.SetPtEtaPhiM(event.metNoHF_pt,event.metNoHF_eta,event.metNoHF_phi,event.metNoHF_mass)
+        ret["METNoHF"] = metNoHFp4.Pt()
+
+        ## MET FILTERS for data
+        if event.isData:
+            #ret['METfilters'] = event.Flag_goodVertices and event.Flag_HBHENoiseFilter_fix and event.Flag_CSCTightHaloFilter and event.Flag_eeBadScFilter)
+            ret['METfilters'] = event.nVert > 0 and event.Flag_HBHENoiseFilter_fix and event.Flag_CSCTightHaloFilter and event.Flag_eeBadScFilter
 
         ### LEPTONS
         Selected = False
@@ -286,14 +314,29 @@ class EventVars1L_base:
 
             ret['Selected'] = 1
 
-        else: #if len(antiTightLeps) > 0: or empty collection
+        elif len(antiTightLeps) > 0:
             tightLeps = antiTightLeps
             tightLepsIdx = antiTightLepsIdx
 
             vetoLeps = antiVetoLeps
 
-            if len(antiTightLeps) > 0:
-                ret['Selected'] = -1
+            ret['nTightLeps'] = 0
+            ret['nTightMu'] = 0
+            ret['nTightEl'] = 0
+
+            ret['Selected'] = -1
+
+        else:
+            tightLeps = []
+            tightLepsIdx = []
+
+            vetoLeps = []
+
+            ret['nTightLeps'] = 0
+            ret['nTightMu'] = 0
+            ret['nTightEl'] = 0
+
+            ret['Selected'] = 0
 
         # store Tight and Veto lepton numbers
         ret['nLep'] = len(tightLeps)
@@ -336,7 +379,13 @@ class EventVars1L_base:
             if j.pt>30 and abs(j.eta)<centralEta:
                 centralJet30.append(j)
 
-        ret['nJet']   = len(centralJet30)
+        nJetC = len(centralJet30)
+        ret['nJet']   = nJetC
+
+        if nJetC > 0:
+            ret['Jet1_pt'] = centralJet30[0].pt
+        if nJetC > 1:
+            ret['Jet2_pt'] = centralJet30[1].pt
 
         ret['LSLjetptGT80'] = 1 if sum([j.pt>80 for j in centralJet30])>=2 else 0
 
@@ -361,8 +410,10 @@ class EventVars1L_base:
 
         # deltaPhi between the (single) lepton and the reconstructed W (lep + MET)
         dPhiLepW = -999 # set default value to -999 to spot "empty" entries
+        dPhiLepWNoHF = -999 # set default value to -999 to spot "empty" entries
         # LT of lepton and MET
         LT = -999
+        LTNoHF = -999
         Lp = -99
 
         if len(tightLeps) >=1:
@@ -372,12 +423,22 @@ class EventVars1L_base:
             LT = tightLeps[0].pt + event.met_pt
             Lp = tightLeps[0].pt / recoWp4.Pt() * cos(dPhiLepW)
 
+            ## no HF
+            recoWNoHFp4 =  tightLeps[0].p4() + metNoHFp4
+            dPhiLepWNoHF = tightLeps[0].p4().DeltaPhi(recoWNoHFp4)
+            LTNoHF = tightLeps[0].pt + event.metNoHF_pt
+
         ret["DeltaPhiLepW"] = dPhiLepW
         dPhi = abs(dPhiLepW) # nickname for absolute dPhiLepW
         ret['dPhi'] = dPhi
         ret['ST'] = LT
         ret['LT'] = LT
         ret['Lp'] = Lp
+
+        # no HF
+        dPhiNoHF = abs(dPhiLepWNoHF) # nickname for absolute dPhiLepW
+        ret['dPhiNoHF'] = dPhiNoHF
+        ret['LTNoHF'] = LTNoHF
 
         #############
         ## Playground

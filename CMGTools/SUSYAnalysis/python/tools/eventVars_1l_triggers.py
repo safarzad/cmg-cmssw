@@ -12,7 +12,7 @@ class EventVars1L_triggers:
         self.branches = [
             'HLT_HT350', 'HLT_HT600', 'HLT_HT800',
             'HLT_MET170',
-            'HLT_HT350MET120','HLT_HT350MET100','HTMET',
+            'HLT_HT350MET120','HLT_HT350MET100','HLT_HTMET',
             'HLT_IsoMu27','HLT_Mu50', # single mu
             'HLT_MuHT400MET70','HLT_MuHT350MET70', 'HLT_MuHTMET',# for analysis
             'HLT_MuHT600', 'HLT_MuMET120', 'HLT_MuHT400B', #aux
@@ -39,16 +39,13 @@ class EventVars1L_triggers:
         #        print line.GetName()
 
         # custom names for triggers
-        '''
-        ret['HLT_IsoMu27'] = event.HLT_SingleMu
-        ret['HLT_IsoEle32'] = event.HLT_SingleEl
-        ret['HLT_Mu50'] = event.HLT_Mu50NoIso
-        ret['HLT_Ele105'] = event.HLT_ElNoIso
-        '''
 
-        ret['HLT_EleOR'] = event.HLT_Ele105 or event.HLT_EleHTMET
-        ret['HLT_MuOR'] = event.HLT_Mu50 or event.HLT_MuHTMET
-        ret['HLT_LepOR'] = event.HLT_Mu50 or event.HLT_MuHTMET or event.HLT_Ele105 or event.HLT_EleHTMET
+        if hasattr(event,'HLT_Ele105'):
+            ret['HLT_EleOR'] = event.HLT_Ele105 or event.HLT_EleHTMET
+        if hasattr(event,'HLT_Mu50'):
+            ret['HLT_MuOR'] = event.HLT_Mu50 or event.HLT_MuHTMET
+        if hasattr(event,'HLT_Ele105'):
+            ret['HLT_LepOR'] = event.HLT_Mu50 or event.HLT_MuHTMET or event.HLT_Ele105 or event.HLT_EleHTMET
 
         ## loop over all HLT names and set them in tree
         for var in self.branches:
