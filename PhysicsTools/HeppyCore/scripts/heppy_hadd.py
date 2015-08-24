@@ -25,7 +25,7 @@ def haddPck(file, odir, idirs):
             except TypeError:
                 # += not implemented, nevermind
                 pass
-                
+
     oFileName = file.replace( idirs[0], odir )
     pckfile = open(oFileName, 'w')
     pickle.dump(sum, pckfile)
@@ -34,7 +34,7 @@ def haddPck(file, odir, idirs):
     txtFile.write( str(sum) )
     txtFile.write( '\n' )
     txtFile.close()
-    
+
 
 def hadd(file, odir, idirs):
     if file.endswith('.pck'):
@@ -57,7 +57,7 @@ def hadd(file, odir, idirs):
 
 def haddRec(odir, idirs):
     print 'adding', idirs
-    print 'to', odir 
+    print 'to', odir
 
     cmd = ' '.join( ['mkdir', odir])
     # import pdb; pdb.set_trace()
@@ -65,16 +65,16 @@ def haddRec(odir, idirs):
     try:
         os.mkdir( odir )
     except OSError:
-        print 
+        print
         print 'ERROR: directory in the way. Maybe you ran hadd already in this directory? Remove it and try again'
-        print 
+        print
         raise
     for root,dirs,files in os.walk( idirs[0] ):
         # print root, dirs, files
         for dir in dirs:
             dir = '/'.join([root, dir])
             dir = dir.replace(idirs[0], odir)
-            cmd = 'mkdir ' + dir 
+            cmd = 'mkdir ' + dir
             # print cmd
             # os.system(cmd)
             os.mkdir(dir)
@@ -114,7 +114,7 @@ def haddChunks(idir, removeDestDir, cleanUp=False, odir_cmd='./'):
         for comp, chunks in chunks.iteritems():
             for chunk in chunks:
                 shutil.move(chunk, chunkDir)
-        
+
 
 if __name__ == '__main__':
 
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     parser.usage = """
     %prog <dir>
     Find chunks in dir, and run recursive hadd to group all chunks.
-    For example: 
+    For example:
     DYJets_Chunk0/, DYJets_Chunk1/ ... -> hadd -> DYJets/
     WJets_Chunk0/, WJets_Chunk1/ ... -> hadd -> WJets/
     """
@@ -150,4 +150,3 @@ if __name__ == '__main__':
       odir='./'
 
     haddChunks(dir, options.remove, options.clean, odir)
-
