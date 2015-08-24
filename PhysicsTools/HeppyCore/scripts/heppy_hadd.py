@@ -79,6 +79,10 @@ def haddRec(odir, idirs):
             # os.system(cmd)
             os.mkdir(dir)
         for file in files:
+            # ignore cmsswPreProcessing
+            if 'cmsswPreProcessing' in file:
+                print 'Skipping cmsswPreProcessing file!'
+                continue
             hadd('/'.join([root, file]), odir, idirs)
 
 def haddChunks(idir, removeDestDir, cleanUp=False, odir_cmd='./'):
@@ -143,7 +147,13 @@ if __name__ == '__main__':
         print 'provide at most 2 directory as arguments: first the source, then the destination (optional)'
         sys.exit(1)
 
-    dir = args[0]
+    if len(args)>0:
+        dir = args[0]
+    else:
+        print 'No indir given!'
+        print parser.usage
+        sys.exit(1)
+
     if(len(args)>1):
       odir = args[1]
     else:
