@@ -9,6 +9,12 @@ from CMGTools.SUSYAnalysis.tools.eventVars_1l_newbase import EventVars1L_base
 MODULES.append( ('1l_Basics', EventVars1L_base()) )
 from CMGTools.SUSYAnalysis.tools.eventVars_1l_triggers import EventVars1L_triggers
 MODULES.append( ('1l_Triggers', EventVars1L_triggers()) )
+
+# for signal masses
+from CMGTools.SUSYAnalysis.tools.eventVars_1l_signal import EventVars1L_signal
+MODULES.append( ('1l_Signal', EventVars1L_signal()) )
+
+
 '''
 from CMGTools.SUSYAnalysis.tools.eventVars_1l_bkgDilep import EventVars1L_bkgDilep
 MODULES.append( ('1l_bkgDilep', EventVars1L_bkgDilep()) )
@@ -163,7 +169,12 @@ if options.naf:
     import os, sys
     import subprocess
 
-    jobList = open('jobList.txt','w')
+    # make unique name for jobslist
+    import time
+    itime = int(time.time())
+    jobListName = 'jobList_%i.txt' %(itime)
+    jobList = open(jobListName,'w')
+    print 'Filling %s with job commands' % (jobListName)
 
     basecmd = "python {self} -N {chunkSize} -T '{tdir}' -t {tree} {data} {output}".format(
         njobs=1, self=sys.argv[0], chunkSize=options.chunkSize, tdir=options.treeDir, tree=options.tree, data=args[0], output=args[1]
@@ -183,11 +194,12 @@ if options.naf:
             jobList.write("{base} -d {data} {post}".format(base=basecmd, data=name, chunk=chunk, post=friendPost)+'\n')
 
     # submit job array on list
-    subCmd = 'qsub -t 1-%s -o logs nafbatch_runner.sh jobList.txt' %len(jobs)
+    subCmd = 'qsub -t 1-%s -o logs nafbatch_runner.sh %s' %(len(jobs),jobListName)
     print 'Going to submit', len(jobs), 'jobs with', subCmd
     args=subCmd.split()
 
-    subprocess.Popen(args)
+    #subprocess.Popen(args)
+    subprocess.call(args) #will run immediately
 
     jobList.close()
     exit()
