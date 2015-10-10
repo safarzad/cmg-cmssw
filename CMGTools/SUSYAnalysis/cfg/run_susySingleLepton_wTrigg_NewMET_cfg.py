@@ -11,7 +11,9 @@ from CMGTools.TTHAnalysis.analyzers.susyCore_modules_cff import *
 
 # Lepton Preselection
 # ele
-lepAna.loose_electron_id = "POG_MVA_ID_Run2_NonTrig_VLoose"
+lepAna.loose_electron_id = "POG_MVA_ID_Run2Spring15_NonTrig_VLoose"
+#for cut based this should work:
+#lepAna.loose_electron_id = "POG_Cuts_ID_SPRING15_25ns_v1_Veto"
 lepAna.loose_electron_pt  = 5
 # mu
 lepAna.loose_muon_pt  = 5
@@ -88,6 +90,13 @@ ttHSTSkimmer = cfg.Analyzer(
 	minST = 200,
 	)
 
+## HT skim
+from CMGTools.TTHAnalysis.analyzers.ttHHTSkimmer import ttHHTSkimmer
+ttHHTSkimmer = cfg.Analyzer(
+	ttHHTSkimmer, name='ttHHTSkimmer',
+	minHT = 350,
+	)
+
 #from CMGTools.RootTools.samples.triggers_13TeV_Spring15 import * # central trigger list
 from CMGTools.RootTools.samples.triggers_13TeV_Spring15_1l import *
 
@@ -104,6 +113,7 @@ triggerFlagsAna.triggerBits = {
 	## muon
 	'SingleMu' : triggers_1mu,
 	'IsoMu27' : triggers_1mu,
+        'IsoMu20' : triggers_1mu20,
 	'Mu45eta2p1' : trigger_1mu_noiso_r,
 	'Mu50' : trigger_1mu_noiso_w,
 	'MuHT600' : triggers_mu_ht600,
@@ -116,6 +126,8 @@ triggerFlagsAna.triggerBits = {
 	'MuHT400B': triggers_mu_ht400_btag,
 	## electrons
 	'IsoEle32' : triggers_1el,
+        'IsoEle23' : triggers_1el23,
+        'IsoEle22' : triggers_1el22,
 	'Ele105' : trigger_1el_noiso,
 	'EleHT600' : triggers_el_ht600,
 	'EleHT400MET70' : triggers_el_ht400_met70,
@@ -134,7 +146,7 @@ isData = True
 
 #sample = 'MC'
 sample = 'data'
-test = 1
+test = 0
 
 if sample == "MC":
 
@@ -149,18 +161,18 @@ if sample == "MC":
 	ttHLepSkim.minLeptons = 1
 
 	# -- new 74X samples
-#	from CMGTools.RootTools.samples.samples_13TeV_74X import *
+	from CMGTools.RootTools.samples.samples_13TeV_74X import *
 	# -- samples at DESY
-	from CMGTools.SUSYAnalysis.samples.samples_13TeV_74X_desy import *
+#	from CMGTools.SUSYAnalysis.samples.samples_13TeV_74X_desy import *
 
 	# select components
 	selectedComponents = [
-		TTJets_LO_25ns,
+		TTJets_LO #_25ns,
 	]
 
 	if test==1:
 		# test a single component, using a single thread.
-		comp = TTJets_LO_25ns
+		comp = TTJets_LO #_25ns
 		comp.files = comp.files[:1]
 		selectedComponents = [comp]
 		comp.splitFactor = 1
@@ -168,12 +180,12 @@ if sample == "MC":
 		# test all components (1 thread per component).
 		for comp in selectedComponents:
 			comp.splitFactor = 1
-			comp.fineSplitFactor = 1
+			comp.fineSplitFactor = 2
 			comp.files = comp.files[:1]
 	elif test==3:
 		# run all components (1 thread per component).
 		for comp in selectedComponents:
-			comp.fineSplitFactor = 1
+			comp.fineSplitFactor = 2
 			comp.splitFactor = len(comp.files)
 	elif test==0:
 		# PRODUCTION
@@ -183,7 +195,7 @@ if sample == "MC":
 		selectedComponents = QCD_HT
 
 		for comp in selectedComponents:
-			comp.fineSplitFactor = 1
+			comp.fineSplitFactor = 2
 			comp.splitFactor = len(comp.files)
 
 elif sample == "data":
@@ -191,7 +203,7 @@ elif sample == "data":
 	print 'Going to process DATA'
 
 	jecDBFile = '$CMSSW_BASE/src/CMGTools/RootTools/data/jec/Summer15_25nsV5_DATA.db'
-	jecEra    = 'Summer15_25nsV5'#'Summer15_25nsV2_DATA'
+	jecEra    = 'Summer15_25nsV5_DATA'
 
 	isData = True
 
@@ -199,9 +211,9 @@ elif sample == "data":
 	ttHLepSkim.minLeptons = 0
 
 	# central samples
-#	from CMGTools.RootTools.samples.samples_13TeV_DATA2015 import *
+	from CMGTools.RootTools.samples.samples_13TeV_DATA2015 import *
 	# samples at DESY
-	from CMGTools.SUSYAnalysis.samples.samples_13TeV_DATA2015_desy import *
+#	from CMGTools.SUSYAnalysis.samples.samples_13TeV_DATA2015_desy import *
 
 	#selectedComponents = [ SingleElectron_Run2015B, SingleMuon_Run2015B ]
 	#selectedComponents = [ SingleElectron_Run2015B ]
@@ -211,32 +223,35 @@ elif sample == "data":
 	#selectedComponents = [ HTMHT_Run2015B ]
 
 	selectedComponents = [ JetHT_Run2015D, SingleElectron_Run2015D, SingleMuon_Run2015D ]
+        
+        if test!=0 and jsonAna in susyCoreSequence: susyCoreSequence.remove(jsonAna)
 
 	if test==1:
 		# test a single component, using a single thread.
-		comp = JetHT_Run2015D
+		comp = SingleMuon_Run2015D #JetHT_Run2015D
 		#comp = SingleElectron_Run2015D
 		#comp.files = ['dcap://dcache-cms-dcap.desy.de/pnfs/desy.de/cms/tier2//store/data/Run2015D/JetHT/MINIAOD/PromptReco-v3/000/256/587/00000/F664AC07-935D-E511-A019-02163E01424B.root']
-		comp.files = comp.files[:1]
+		comp.files = comp.files[20:30]
 		selectedComponents = [comp]
-		comp.splitFactor = 1
+#		comp.splitFactor = 1
+		comp.splitFactor = len(comp.files)
 	elif test==2:
 		# test all components (1 thread per component).
 		for comp in selectedComponents:
 			comp.splitFactor = 1
-			comp.fineSplitFactor = 1
+			comp.fineSplitFactor = 2
 			comp.files = comp.files[:1]
 	elif test==3:
 		# run all components (10 files per component).
 		for comp in selectedComponents:
-			comp.files = comp.files[:10]
-			comp.fineSplitFactor = 1
+			comp.files = comp.files[20:30]
+			comp.fineSplitFactor = 2
 			comp.splitFactor = len(comp.files)
 	elif test==0:
 		# PRODUCTION
 		# run on everything
 		for comp in selectedComponents:
-			comp.fineSplitFactor = 1 # force for DATA (because of pre-processor)
+			comp.fineSplitFactor = 2 
 			comp.splitFactor = len(comp.files)
 
 
@@ -246,10 +261,13 @@ removeResiduals = False
 preprocessor = None
 doMETpreprocessor = True
 if doMETpreprocessor:
-	import subprocess
-	preprocessorFile = "$CMSSW_BASE/tmp/MetType1_jec_%s.py"%(jecEra)
-	extraArgs=[]
-	if isData:
+        import tempfile
+        import subprocess
+        tempfile.tempdir=os.environ['CMSSW_BASE']+'/tmp'
+        tfile, tpath = tempfile.mkstemp(suffix='.py',prefix='MET_preproc_')
+        os.close(tfile)
+        extraArgs=[]
+        if isData:
 		extraArgs.append('--isData')
 		GT= '74X_dataRun2_Prompt_v1'
 	else:
@@ -258,13 +276,20 @@ if doMETpreprocessor:
 	args = ['python',
 		os.path.expandvars('$CMSSW_BASE/python/CMGTools/ObjectStudies/corMETMiniAOD_cfgCreator.py'),\
 			'--GT='+GT,
-		'--outputFile='+preprocessorFile,
+		'--outputFile='+tpath,
 		'--jecDBFile='+jecDBFile,
 		'--jecEra='+jecEra
 		] + extraArgs
 #print "Making pre-processorfile:"
 #print " ".join(args)
 	subprocess.call(args)
+        staticname = "$CMSSW_BASE/tmp/MetType1_jec_%s.py"%(jecEra)
+        import filecmp
+        if os.path.isfile(staticname) and filecmp.cmp(tpath,staticname):
+                os.system("rm %s"%tpath)
+        else:
+                os.system("mv %s %s"%(tpath,staticname))
+        preprocessorFile = staticname
 	from PhysicsTools.Heppy.utils.cmsswPreprocessor import CmsswPreprocessor
 	preprocessor = CmsswPreprocessor(preprocessorFile)
 
@@ -294,10 +319,14 @@ sequence = cfg.Sequence(susyCoreSequence+[
 		LHEAna,
 		ttHEventAna,
 		#ttHSTSkimmer,
+		ttHHTSkimmer,
 		#ttHReclusterJets,
 		hbheFilterAna,
 		treeProducer,
 		])
+
+
+if isData: sequence.remove(ttHHTSkimmer)
 
 from PhysicsTools.HeppyCore.framework.eventsfwlite import Events
 config = cfg.Config( components = selectedComponents,
