@@ -23,7 +23,7 @@ def getPnames(fname,tdir):
 
     return pnames
 
-def getRcsHist(tfile, hname, band = "SB"):
+def getRcsHist(tfile, hname, band = "SB", merge = True):
 
     hSR = tfile.Get("SR_"+band+"/"+hname)
     hCR = tfile.Get("CR_"+band+"/"+hname)
@@ -32,6 +32,15 @@ def getRcsHist(tfile, hname, band = "SB"):
     hRcs.Divide(hCR)
 
     hRcs.GetYaxis().SetTitle("Rcs")
+
+    # merge means ele/mu values are overwritten by the combined Rcs
+    if 'data' in hname: merge = True
+
+    if merge:
+        rcs = hRcs.GetBinContent(2,2); err = hRcs.GetBinError(2,2) # lep sele
+
+        hRcs.SetBinContent(1,2,rcs); hRcs.SetBinError(1,2,err) # mu sele
+        hRcs.SetBinContent(3,2,rcs); hRcs.SetBinError(3,2,err) # ele sele
 
     return hRcs
 
@@ -48,8 +57,8 @@ def getPredHist(tfile, hname):
     # get yield from CR of MB
     hCR_MB = tfile.Get("CR_MB/"+hname)
 
-    hPred = hCR_MB.Clone(hCR_MB.GetName()+"_pred")
-    hPred.SetTitle("Predicted yield")
+    hPred = hCR_MB.Clone(hCR_MB.GetName())#+"_pred")
+    #hPred.SetTitle("Predicted yield")
 
     hPred.Multiply(hRcsMB)
     hPred.Multiply(hKappa)
@@ -75,7 +84,10 @@ def readQCDratios(fname = "lp_LTbins_NJ34_f-ratios_MC.txt"):
 
     return fDict
 
-def getQCDsubtrHisto(tfile, pname = "background", band = "CR_MB/", isMC = True, lep = "ele"):
+def getQCDsubtrHistos(tfile, pname = "background", band = "CR_MB/", isMC = True, lep = "ele"):
+    ## returns two histograms:
+    ## 1. QCD prediction from anti-leptons
+    ## 2. Original histo - QCD from prediction
 
     fRatio = 0.3 # default
     fRatioErr = 0.01 # default
@@ -98,85 +110,39 @@ def getQCDsubtrHisto(tfile, pname = "background", band = "CR_MB/", isMC = True, 
         hOrig = tfile.Get(band+pname) # original histogram
         if not hOrig: return 0
 
-        hCorr = hOrig.Clone(pname+"_QCDsubtr") # histo to subtract QCD
+        ############################
+        ## 1. QCD prediction
+        hQCDpred = hOrig.Clone(pname+"_QCDpred")
+        hQCDpred.Reset() # reset counts/errors
 
-        # take anti/selected yields for Electrons
-        ySeleEle = hOrig.GetBinContent(3,2); ySeleEleErr = hOrig.GetBinError(3,2);
+        # take anti-selected ele yields
         yAnti = hOrig.GetBinContent(3,1); yAntiErr = hOrig.GetBinError(3,1);
 
+        # apply f-ratio
         yQCDFromAnti = fRatio*yAnti
-        ySeleEleMinusAnti = ySeleEle - fRatio*yAnti# if ySeleEle > fRatio*yAnti else 0
+        yQCDFromAntiErr = sqrt((yAntiErr*fRatio)**2 + (yAnti*fRatioErr)**2)
 
-        # error
-        ySeleEleMinusAntiErr = sqrt(ySeleEleErr**2 + (yAntiErr*fRatio)**2 + (yAnti*fRatioErr)**2)
+        # set bin content for ele
+        hQCDpred.SetBinContent(3,2,yQCDFromAnti)
+        hQCDpred.SetBinError(3,2,yQCDFromAntiErr)
 
-        # Set bin for electrons
-        hCorr.SetBinContent(3,2,ySeleEleMinusAnti)
-        hCorr.SetBinError(3,2,ySeleEleMinusAntiErr)
+        # set bin content for lep (=ele)
+        hQCDpred.SetBinContent(2,2,yQCDFromAnti)
+        hQCDpred.SetBinError(2,2,yQCDFromAntiErr)
 
-        ## Apply correction on combined electrons
-        ySeleLep = hOrig.GetBinContent(2,2)
-        ySeleMu = hOrig.GetBinContent(1,2); ySeleMuErr = hOrig.GetBinError(1,2)
+        ############################
+        ## 2. histo with QCD subtracted
+        hQCDsubtr = hOrig.Clone(pname+"_QCDsubtr")
 
-        ySeleLepMinusAnti = ySeleMu + ySeleEleMinusAnti
-        ySeleLepMinusAntiErr = hypot(ySeleMuErr,ySeleEleMinusAntiErr)
+        # do QCD subtraction only in Control Region
+        if 'CR' in band:
+            # subtract prediction from histo
+            hQCDsubtr.Add(hQCDpred,-1)
 
-        # Set bin for combined leptons
-        hCorr.SetBinContent(2,2,ySeleLepMinusAnti)
-        hCorr.SetBinError(2,2,ySeleLepMinusAntiErr)
-
-        ## return corrected histogram
-        #hCorr.Write()
-        return hCorr
-    '''
-    if True:
-        hname = "x_QCD"
-        yQCDanti = getYield(tfile,hname,"CR_"+band+"/", (lep,"anti"))
-
-        pQCDsel = yQCDanti[0] * fRatio
-
-        if yQCDanti[0] > 0:
-            pQCDselErr = pQCDsel*hypot(yQCDanti[1]/yQCDanti[0],fRatioErr/fRatio)
-        else:
-            pQCDselErr = 0
-
-        # closure
-        yQCDsel = getYield(tfile,hname,"CR_"+band+"/", (lep,"sele"))
-        print 'Expected nQCDsele = %f +- %f, predicted: %f +- %f' %(yQCDsel[0],yQCDsel[1],pQCDsel,pQCDselErr)
-
-        return 1
+        return (hQCDpred,hQCDsubtr)
     else:
         print "QCD estimate not yet implemented for muons"
         return 0
-    '''
-
-
-'''
-def getRcsWqcd(tfile, pname, band = "MB", lep = "lep"):
-
-    rcsName = "Rcs_" + pname
-
-    ySR = getYield(tfile,rcsName,"Rcs_"+band+"/", (lep,"sel"))
-    yCR = getYield(tfile,rcsName,"Rcs_"+band+"/", (lep,"sel"))
-    yCRanti = getYield(tfile,rcsName,"CR_"+band+"/", (lep,"anti"))
-
-    kName = "Kappa_" + pname
-
-    kappa = getYield(tfile,kName,"Kappa_"+band+"/", (lep,"sel"))
-
-
-    ## Need 5 yields for RCS prediction
-    # * SB SR: sele
-    # * SB CR: sele & anti
-    # * CR: sele & anti
-    ## QCD:
-
-    ## Prediction
-    # SR = (CR-CRqcd) * SB_SR/(SB_CR-SB_CRqcd) * kappa
-
-
-    return 1
-'''
 
 def makeQCDsubtraction(fileList):
 
@@ -198,12 +164,17 @@ def makeQCDsubtraction(fileList):
                 if 'data' in pname: isMC = False
                 else: isMC = True
 
-                hNew = getQCDsubtrHisto(tfile,pname,bindir+"/",isMC)
-                if not hNew:
-                    print 'Could not create new histo for', pname
+                #hNew = getQCDsubtrHisto(tfile,pname,bindir+"/",isMC)
+                ret  = getQCDsubtrHistos(tfile,pname,bindir+"/",isMC)
+
+                if not ret:
+                    print 'Could not create new histo for', pname, 'in bin', bindir
                 else:
+                    (hQCDpred,hQCDsubtr) = ret
                     tfile.cd(bindir)
-                    hNew.Write()
+                    #hNew.Write()
+                    hQCDpred.Write()
+                    hQCDsubtr.Write()
                 tfile.cd()
 
         tfile.Close()
@@ -302,6 +273,37 @@ def makePredictHists(fileList):
 
     return 1
 
+def makeClosureHists(fileList):
+
+    pnames = getPnames(fileList[0],'SR_MB') # get process names from file
+    #print 'Found these hists:', pnames
+
+    bindirs =  ['SR_MB','CR_MB','SR_SB','CR_SB']
+
+    for fname in fileList:
+        tfile = TFile(fname,"UPDATE")
+
+        # create Closure dir
+        if not tfile.GetDirectory("Closure"):
+            tfile.mkdir("Closure")
+
+        for pname in pnames:
+
+            hPred = tfile.Get("SR_MB_predict/"+pname)#+"_pred")
+            hExp = tfile.Get("SR_MB/"+pname)
+
+            hDiff = hExp.Clone(hExp.GetName())#+"_diff")
+            hDiff.Add(hPred,-1)
+
+            hDiff.GetYaxis().SetTitle("Expected - Predicted")
+
+            tfile.cd("Closure")
+            hDiff.Write()
+
+        tfile.Close()
+
+    return 1
+
 if __name__ == "__main__":
 
     ## remove '-b' option
@@ -324,6 +326,7 @@ if __name__ == "__main__":
     makeQCDsubtraction(fileList)
     makeKappaHists(fileList)
     makePredictHists(fileList)
+    makeClosureHists(fileList)
 
     #tfile = TFile(fileList[0],"UPDATE")
     #getQCDsubtrHisto(tfile,"background","")
