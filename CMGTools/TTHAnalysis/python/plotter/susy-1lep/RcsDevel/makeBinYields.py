@@ -5,13 +5,26 @@ import sys, os, os.path
 from searchBins import *
 from math import hypot
 
-# trees
+'''
+## Trees
 Tdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/SampLinks_MiniAODv2"
+# MC
 mcFTdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/SampLinks_MiniAODv2/Friends/MC/allSamps_pu69mb"
 sigFTdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/SampLinks_MiniAODv2/Friends/Signals/T1tttt_pu69mb_fixMLSP"
 
 # new data
 dataFTdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/SampLinks_MiniAODv2/Friends/Data/trig_skim_2p1fb"
+'''
+
+## Trees -- skimmed with trig_base
+Tdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/SampLinks_MiniAODv2_skimmed"
+# MC
+mcFTdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/SampLinks_MiniAODv2_skimmed/Friends/MC/pu_69mb"
+#sigFTdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/SampLinks_MiniAODv2/Friends/Signals/T1tttt_pu69mb_fixMLSP"
+
+# new data
+dataFTdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/SampLinks_MiniAODv2_skimmed/Friends/Data/trig_base_skim_2p1fb"
+
 
 def addOptions(options):
 
@@ -138,7 +151,7 @@ def writeYields(options):
     if not options.pretend:
         totalMC = []; ewkMC = []
         for p in mca.listBackgrounds():
-            if p in report and 'TTdiLep' not in p and 'TTsemiLep' not in p and 'TTincl' not in p:
+            if p in report and 'TTdiLep' not in p and 'TTsemiLep' not in p and 'TTincl' not in p and 'T1ttt' not in p:
             #if p in report and 'TTdiLep' not in p and 'TTsemiLep' not in p:
                 print 'adding for background',p
                 totalMC.append(report[p])
@@ -146,8 +159,9 @@ def writeYields(options):
                     print 'adding for ewk', p
                     ewkMC.append(report[p])
 
-        report['x_background'] = mergePlots("x_background", totalMC)
-        if 'TT' in mca.listBackgrounds():
+        if len(totalMC) > 0:
+            report['x_background'] = mergePlots("x_background", totalMC)
+        if len(ewkMC) > 0:
             report['x_EWK'] = mergePlots("x_EWK", ewkMC)
 
     '''
@@ -284,9 +298,8 @@ if __name__ == "__main__":
         cDict.update(cutDictSRf5)
         cDict.update(cutDictCRf5)
 
-    cDict = cutQCDsyst #QCD
+    #cDict = cutQCDsyst #QCD
     #cDict = cutIncl #Inclusive
-    #print cDict.keys();
     ##rint sorted([k for k in cDict.keys() if "NB0i" in k])
     #print sorted([k for k in cDict.keys() if "NB1" in k])
     #exit(0)
@@ -294,6 +307,8 @@ if __name__ == "__main__":
     # for LT/HT plots
     #cDict = cutLTbinsSR
     #cDict.update(cutLTbinsCR)
+
+    #print cDict.keys(); exit(0)
 
     binList = sorted(cDict.keys())
 
