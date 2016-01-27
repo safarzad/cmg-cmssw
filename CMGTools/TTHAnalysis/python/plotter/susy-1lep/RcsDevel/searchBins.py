@@ -42,7 +42,8 @@ binsNJ['NJ4f5'] = ('nJets30Clean == 4','[4]')
 
 ## Signal/Control region (wrt dPhi)
 binsSR = {}
-binsSR['SR'] = ('isSR == 1','$\delta \phi > $ x')
+#unblind now
+binsSR['SR'] = ('abs(isSR) == 1','$\delta \phi > $ x')
 binsCR = {}
 binsCR['CR'] = ('isSR == 0','$\delta \phi < $ x')
 
@@ -406,7 +407,10 @@ for nj_bin in ['NJ45f6','NJ68']:#binsNJ.iteritems():
             if lt_bin in ['LT4i']:
                 nbbins = ['NB1i']
             elif lt_bin in ['LT1']:
-                nbbins = ['NB3i']
+                if nj_bin in ['NJ45f6']:
+                    nbbins = ['NB2i']
+                else:
+                    nbbins = ['NB3i']
             else:
                 nbbins = ['NB2i']
             
