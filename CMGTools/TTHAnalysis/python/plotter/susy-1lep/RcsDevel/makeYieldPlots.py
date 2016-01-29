@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys
+import sys, math
 
 from yieldClass import *
 from ROOT import *
@@ -22,14 +22,14 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.2
 
 
 ## Global vars
-_alpha = 0.35
+_alpha = 0.55
 colorList = [2,4,7,9,8,3,6] + range(10,50)
 _histStore = {}
 _lines = []
 
 _batchMode = True#False
 
-colorDict = {'TTj': kBlue-4,'TTdiLep':kBlue-4,'TTsemiLep':kBlue-2,'WJets':kGreen-2,
+colorDict = {'TTJets': kBlue-4,'TTdiLep':kBlue-4,'TTsemiLep':kBlue-2,'WJets':kGreen-2,
              'QCD':kCyan-6,'SingleT':kViolet+5,'DY':kRed-6,'TTV':kOrange-3,'data':1,'background':2,'EWK':3}
 
 def doLegend(pos = "TM",nEntr = None):
@@ -60,6 +60,8 @@ def doLegend(pos = "TM",nEntr = None):
     return leg
 
 def getSampColor(name):
+
+    if "TT_" in name: name = name.replace("TT_","TTJets_")
 
     for samp in sorted(colorDict.keys()):
         if samp == name:
@@ -132,7 +134,7 @@ def makeSampHisto(yds, samp, cat, hname = "", ind = 0):
     ydict = yds.getSampDict(samp,cat)
 
     if not ydict:
-        print "Could not read dict"
+        print "Could not read dict", samp, cat
         return 0
 
     # create histo
@@ -159,6 +161,7 @@ def makeSampHisto(yds, samp, cat, hname = "", ind = 0):
     for ibin,bin in enumerate(binList):
         label = ydict[bin].label if ydict[bin].label != "" else bin
         labels.append(getCleanLabel(label))
+
     ulabs = getUniqLabels(labels)
 
     # fill histo
@@ -170,7 +173,7 @@ def makeSampHisto(yds, samp, cat, hname = "", ind = 0):
 
         binLabel = getCleanLabel(binLabel)
 
-        if binLabel in ulabs: binLabel = ulabs[binLabel]
+       # if binLabel in ulabs: binLabel = ulabs[binLabel]
 
         newLabel = "#splitline"
 
@@ -211,8 +214,8 @@ def makeSampHisto(yds, samp, cat, hname = "", ind = 0):
             hist.SetFillColor(col)
             hist.SetFillStyle(3001)
 
-    #hist.SetLineColor(col)
-    hist.SetLineColor(1)
+    hist.SetLineColor(col)
+    #hist.SetLineColor(1)
     hist.SetMarkerColor(col)
     hist.SetMarkerStyle(20)
 
@@ -300,13 +303,19 @@ def getRatio(histA,histB, keepStyle = False):
     ratio.GetYaxis().SetTitleSize(0.08)
     ratio.GetYaxis().SetTitleOffset(0.3)
     ratio.GetYaxis().SetLabelSize(0.1)
-    ratio.GetYaxis().SetRangeUser(0.05,2.1)
+
+    ymax = min(2.9,1.3*ratio.GetMaximum())
+    ymin = 0.8*min(ratio.GetMinimum(),0.85)
+    ratio.GetYaxis().SetRangeUser(ymin,ymax)
+    ratio.SetMaximum(ymax)
+    ratio.SetMinimum(ymin)
 
     ratio.GetXaxis().SetLabelSize(0.1)
 
     if not keepStyle:
         ratio.SetLineColor(1)
         ratio.SetMarkerColor(1)
+        ratio.SetMarkerStyle(20)
     ratio.SetFillColor(0)
     ratio.SetFillStyle(0)
 
@@ -370,6 +379,41 @@ def getStack(histList):
 
     return stack
 
+def getSquaredSum(histList):
+
+    sqHist = histList[0].Clone()
+
+    for i,hist in enumerate(histList):
+        if i > 0:
+            for bin in range(1,hist.GetNbinsX()+1):
+                x = sqHist.GetBinContent(bin)
+                new = x*x + hist.GetBinContent(bin)*hist.GetBinContent(bin)
+                sqHist.SetBinContent(bin, math.sqrt(new))
+    sqHist.SetMarkerStyle(34)
+    sqHist.SetMarkerSize(2)
+    sqHist.SetMarkerColor(kBlack)
+    sqHist.SetTitle("sqSum")
+    sqHist.SetName("sqSum")
+    return sqHist
+
+def getHistWithError(hCentral, hSyst, new = True):
+    if new:
+        histWithError = hCentral.Clone()
+        histWithError.SetFillColor(kBlue)
+        histWithError.SetFillStyle(3002)
+    else:
+        histWithError = hCentral
+
+    for bin in range(1,hCentral.GetNbinsX()+1):
+        sys = hCentral.GetBinContent(bin)*hSyst.GetBinContent(bin)
+        #err = math.sqrt(hCentral.GetBinError(bin)*hCentral.GetBinError(bin) + sys*sys)
+        err = math.hypot(hCentral.GetBinError(bin),sys)
+        histWithError.SetBinError(bin, err)
+
+    return  histWithError
+
+
+
 def getTotal(histList):
     # to be used only for ratio and error band
 
@@ -382,7 +426,7 @@ def getTotal(histList):
 
     total.SetLineColor(0)
     total.SetFillColor(kGray)
-    total.SetFillStyle(3144)
+    total.SetFillStyle(3244)
     total.SetMarkerStyle(0)
     total.SetMarkerColor(0)
 
@@ -403,10 +447,10 @@ def getCatLabel(name):
 
     return cname
 
-def plotHists(cname, histList, ratio = None, legPos = "TM"):
+def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height = 600, logY = False):
 
     #canv = TCanvas(cname,cname,1400,600)
-    canv = TCanvas(cname,cname,800,600)
+    canv = TCanvas(cname,cname,width,height)
     #leg = doLegend(len(histList)+1)
     leg = doLegend(legPos)
     if legPos == "Long":
@@ -467,6 +511,7 @@ def plotHists(cname, histList, ratio = None, legPos = "TM"):
             #print marks
             axis = ratio.GetXaxis()
             ymin = ratio.GetMinimum(); ymax = ratio.GetMaximum()
+            #ymin = ratio.GetYaxis().GetXmin(); ymax = ratio.GetYaxis().GetXmax()
             for i,mark in enumerate(marks):
                 pos = axis.GetBinLowEdge(mark)
                 line = TLine(pos,ymin,pos,ymax)
@@ -478,21 +523,34 @@ def plotHists(cname, histList, ratio = None, legPos = "TM"):
 
         if multRatio:
             for rat in ratios[1:]:
-                rat.Draw("pe1same")
+                rat.Draw("pe2same")
 
         p1.cd();
     else:
         canv.SetBottomMargin(0.1)
 
-    plotOpt = ""
-
     # get Y-maximum/minimum
     ymax = max([h.GetMaximum() for h in histList])
-    ymin = min([h.GetMinimum() for h in histList])
+#    ymin = min([h.GetMinimum() for h in histList]);
+
+    for h in histList:
+        if h.ClassName() == "THStack":
+            extHistList = histList + [h for h in h.GetHists()]
+
+    ymin = min([h.GetMinimum() for h in extHistList]);
 
     # for fractions set min to 0
-    if ymax < 1.01 and ymax >= 1: ymax == 1; ymin = 0
-    else: ymax *= 1.3; ymin *= 0.8
+    if not logY:
+        if ymax < 1.01 and ymax >= 1: ymax == 1; ymin = 0 # for fractions
+        else: ymax *= 1.5; ymin *= 0.5
+    else:
+        ymax *= 100; ymin = max(0.05,0.5*ymin)
+
+    #ymin = 0
+    #ymax = min(ymax, 1.5)
+
+    # Common plot option
+    plotOpt = ""#X+Y+"
 
     # make dummy for stack
     if histList[0].ClassName() == "THStack":
@@ -504,40 +562,51 @@ def plotHists(cname, histList, ratio = None, legPos = "TM"):
 
     for i,hist in enumerate(histList):
 
+        if not hist.ClassName() == 'THStack':
+
+            hist.GetYaxis().SetTitleSize(0.05)
+            hist.GetYaxis().SetTitleOffset(0.6)
+
+            if ratio == None: hist.GetYaxis().SetLabelSize(0.4)
+            else: hist.GetYaxis().SetLabelSize(0.05)
+
         # range
         hist.SetMaximum(ymax)
         hist.SetMinimum(ymin)
-
+        #print hist.GetName()
         if "dummy" == hist.GetName():
-            hist.Draw()
+            hist.Draw(plotOpt)
         elif  hist.ClassName() == 'THStack':
             #continue
-            hist.Draw("HISTsame")
+            hist.Draw("HISTsame"+plotOpt)
             hist.GetXaxis().LabelsOption("h")
             hist.GetYaxis().SetTitle("Events")
-            hist.GetYaxis().SetTitleSize(0.06)
+            hist.GetYaxis().SetTitleSize(0.1)
             hist.GetYaxis().SetTitleOffset(0.6)
-
-            if ratio == None: hist.GetYaxis().SetLabelSize(0.04)
-            else: hist.GetYaxis().SetLabelSize(0.05)
 
             for h in reversed(hist.GetHists()):
                 leg.AddEntry(h,h.GetTitle(),"f")
         elif ("data" in hist.GetName()) or ("Data" in hist.GetName()):
             hist.Draw(plotOpt+"pE1")
-            leg.AddEntry(hist,hist.GetTitle(),"p")
+            leg.AddEntry(hist,hist.GetTitle(),"pl")
         elif "total" in hist.GetName():
             hist.Draw(plotOpt+"E2")
             leg.AddEntry(hist,"MC Uncertainty","f")
         elif "Syst" in hist.GetName():
             hist.Draw(plotOpt+"E2")
             leg.AddEntry(hist,hist.GetTitle(),"f")
+        elif "pred" in hist.GetName():
+            hist.Draw(plotOpt+"pE1")
+            leg.AddEntry(hist,hist.GetTitle(),"pl")
+        elif "sqSum" in hist.GetName():
+            hist.Draw(plotOpt+"p")
+            leg.AddEntry(hist,"Sum squared uncertainties","p")
         else:
             if len(histList) < 3:
                 hist.Draw(plotOpt+"pE2")
                 leg.AddEntry(hist,hist.GetTitle(),"pf")
             else:
-                hist.Draw(plotOpt+"pE5")
+                hist.Draw(plotOpt+"pE2")
                 leg.AddEntry(hist,hist.GetTitle(),"pf")
 
         # remove axis label with ratio
@@ -565,11 +634,34 @@ def plotHists(cname, histList, ratio = None, legPos = "TM"):
     leg.Draw()
     SetOwnership(leg,0)
 
+    '''
+    # Add right axis
+    raxis = TGaxis(gPad.GetUxmax(),gPad.GetUymin(),gPad.GetUxmax(), gPad.GetUymax(),0,ymax,510,"+L")
+    #axis.SetLineColor(kRed);
+    #axis.SetTextColor(kRed);
+    raxis.SetTitleSize(0.05)
+    raxis.SetTitleOffset(0.6)
+
+    if ratio == None: raxis().SetLabelSize(0.4)
+    else: raxis.SetLabelSize(0.05)
+    raxis.Draw();
+    '''
+
+    # Add ticks
+    p1.SetTicks()
+    p1.Update()
+
+    if logY: p1.SetLogy()
+
     # draw CMS lumi
     if ratio != None:
         CMS_lumi.CMS_lumi(p1, 4, iPos)
+        p2.SetTicks()
+        p2.Update()
     else:
         CMS_lumi.CMS_lumi(canv, 4, iPos)
+
+    #gPad.RedrawAxis()
 
     return canv
 

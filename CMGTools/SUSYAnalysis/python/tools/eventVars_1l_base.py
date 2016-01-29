@@ -22,15 +22,19 @@ eleEta = 2.4
 # Jets
 ###########
 
-#corrJEC = "central" # can be "central","up","down
-corrJEC = "central" # can be "central","up","down
+corrJEC = "central" # can be "central","up","down"
+#corrJEC = "up" # can be "central","up","down"
+
+smearJER = "None"# can be "None","central","up","down"
+JERAllowedValues = ["None","central","up","down"]
+assert any(val==smearJER for val in JERAllowedValues)
 
 print
 print 30*'#'
-print 'Going to use', corrJEC , 'JEC!'
+print 'Going to use', corrJEC , 'JEC and', smearJER, 'JER!'
 print 30*'#'
 
-def getRecalcMET(metp4, event, corrJEC = "central"):
+def getRecalcMET(metp4, event, corrJEC = "central", smearJER = "None"):
     ## newMETp4 = oldMETp4 - (Sum(oldJetsP4) - Sum(newJetsP4))
 
     # jet pT threshold for MET
@@ -62,6 +66,8 @@ def getRecalcMET(metp4, event, corrJEC = "central"):
         for jet in newjets: jet.pt = jet.rawPt * jet.corr_JECUp
     elif corrJEC == "down":
         for jet in newjets: jet.pt = jet.rawPt * jet.corr_JECDown
+    if smearJER!= "None":
+        for jet in newjets: jet.pt = returnJERSmearedPt(jet.pt,abs(jet.eta),jet.mcPt,smearJER)
 
     # filter jets
     newjets = [j for j in newjets if j.pt > minJpt]
@@ -70,6 +76,29 @@ def getRecalcMET(metp4, event, corrJEC = "central"):
 
     #print "MET diff = ", deltaJetP4.Pt()
     return (metp4 - deltaJetP4)
+
+def returnJERSmearFactor(aeta, shiftJER):
+    # from https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
+    #13 TeV tables
+           
+    factor = 1.061 + shiftJER*0.023
+    if   aeta > 3.2: factor = 1.320 + shiftJER * 0.286
+    elif aeta > 3.0: factor = 1.303 + shiftJER * 0.111
+    elif aeta > 2.5: factor = 1.343 + shiftJER * 0.123
+    elif aeta > 1.9: factor = 1.126 + shiftJER * 0.094
+    elif aeta > 1.3: factor = 1.106 + shiftJER * 0.030
+    elif aeta > 0.8: factor = 1.088 + shiftJER * 0.029
+    
+    return factor
+
+def returnJERSmearedPt(jetpt,aeta,genpt,smearJER):
+    if genpt==0: return jetpt
+#    assert (any(val==smearJER for val in JERAllowedValues) and smearJER!="None")
+    shiftJER=0
+    if   smearJER=="up"  : shiftJER = +1
+    elif smearJER=="down": shiftJER = -1
+    ptscale = max(0.0, (jetpt + (returnJERSmearFactor(aeta, shiftJER)-1)*(jetpt-genpt))/jetpt)
+    return jetpt*ptscale
 
 ## B tag Working points
 ## CSV (v1 -- Run1) WPs
@@ -209,7 +238,10 @@ class EventVars1L_base:
             'nLep', 'nVeto',
             'nEl','nMu',
             ## selected == tight leps
-            'nTightLeps', 'nTightEl','nTightMu',
+            #'nTightLeps',
+            'nTightEl','nTightMu',
+            # for indx
+            ("nTightLeps","I"),("tightLepsIdx","I",10,"nTightLeps"),
             #("tightLeps_DescFlag","I",10,"nTightLeps"),
             'Lep_pdgId','Lep_pt','Lep_eta','Lep_phi','Lep_Idx','Lep_relIso','Lep_miniIso','Lep_hOverE',
             'Selected', # selected (tight) or anti-selected lepton
@@ -255,14 +287,14 @@ class EventVars1L_base:
         # DATASET FLAG
         # -- needs to be adjusted manually
         ##############################
-        if event.isData:
-            ret['PD_JetHT'] = 0
-            ret['PD_SingleEle'] = 0
-            ret['PD_SingleMu'] = 1
-        else:
-            ret['PD_JetHT'] = 0
-            ret['PD_SingleEle'] = 0
-            ret['PD_SingleMu'] = 0
+        ret['PD_JetHT'] = 0
+        ret['PD_SingleEle'] = 0
+        ret['PD_SingleMu'] = 0
+
+        if event.isData and hasattr(self,"sample"):
+            if "SingleEle" in self.sample: ret['PD_SingleEle'] = 1
+            elif "SingleMu" in self.sample: ret['PD_SingleMu'] = 1
+            elif "JetHT" in self.sample: ret['PD_JetHT'] = 1
         ##############################
 
         # copy basic event info:
@@ -496,6 +528,8 @@ class EventVars1L_base:
             ret['nTightMu'] = sum([ abs(lep.pdgId) == 13 for lep in tightLeps])
             ret['nTightEl'] = sum([ abs(lep.pdgId) == 11 for lep in tightLeps])
 
+            ret['tightLepsIdx'] = tightLepsIdx
+
             ret['Selected'] = 1
 
         elif len(antiTightLeps) > 0:
@@ -508,6 +542,8 @@ class EventVars1L_base:
             ret['nTightMu'] = 0
             ret['nTightEl'] = 0
 
+            ret['tightLepsIdx'] = []
+
             ret['Selected'] = -1
 
         else:
@@ -519,6 +555,8 @@ class EventVars1L_base:
             ret['nTightLeps'] = 0
             ret['nTightMu'] = 0
             ret['nTightEl'] = 0
+
+            ret['tightLepsIdx'] = []
 
             ret['Selected'] = 0
 
@@ -577,6 +615,8 @@ class EventVars1L_base:
                 for jet in jets: jet.pt = jet.rawPt * jet.corr_JECDown
             else:
                 pass
+            if smearJER!= "None":
+                for jet in jets: jet.pt = returnJERSmearedPt(jet.pt,abs(jet.eta),jet.mcPt,smearJER)                    
 
         centralJet30 = []; centralJet30idx = []
         centralJet40 = []
@@ -680,9 +720,9 @@ class EventVars1L_base:
         metp4.SetPtEtaPhiM(event.met_pt,event.met_eta,event.met_phi,event.met_mass)
 
         # recalc MET
-        if corrJEC != "none":
-        # get original jet collection
-            metp4 = getRecalcMET(metp4,event,corrJEC)
+        if corrJEC != "central" or smearJER!= "None":
+            ## get original jet collection
+            metp4 = getRecalcMET(metp4,event,corrJEC,smearJER)
 
         ret["MET"] = metp4.Pt()
 
@@ -697,7 +737,7 @@ class EventVars1L_base:
             #ret['METfilters'] = event.nVert > 0 and event.Flag_HBHENoiseFilter_fix and event.Flag_CSCTightHaloFilter and event.Flag_eeBadScFilter
             # add HCAL Iso Noise
             if hasattr(event,"Flag_eeBadScFilter"):
-                ret['METfilters'] = event.Flag_goodVertices > 0 and event.Flag_CSCTightHaloFilter and event.Flag_eeBadScFilter and event.Flag_HBHENoiseFilter_fix and event.Flag_HBHENoiseIsoFilter
+                ret['METfilters'] = event.Flag_goodVertices and event.Flag_CSCTightHaloFilter and event.Flag_eeBadScFilter and event.Flag_HBHENoiseFilter_fix and event.Flag_HBHENoiseIsoFilter
             else:
                 ret['METfilters'] = 1
         else:
@@ -717,7 +757,7 @@ class EventVars1L_base:
             recoWp4 =  tightLeps[0].p4() + metp4
 
             dPhiLepW = tightLeps[0].p4().DeltaPhi(recoWp4)
-            LT = tightLeps[0].pt + event.met_pt
+            LT = tightLeps[0].pt + metp4.Pt()
             Lp = tightLeps[0].pt / recoWp4.Pt() * cos(dPhiLepW)
 
             #MT = recoWp4.Mt() # doesn't work

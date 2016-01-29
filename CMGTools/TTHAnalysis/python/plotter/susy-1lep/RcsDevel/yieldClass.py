@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, glob, sys
+import os, glob, sys, math
 
 from ROOT import *
 from searchBins import *
@@ -103,8 +103,11 @@ class YieldStore:
             for hist in histList:
 
                 if "TH" not in hist.ClassName(): continue
-
                 sample = hist.GetName()
+
+                ## Ignore Up/Down variations:
+                if "syst" in sample and ("Up" in sample or "Down" in sample): continue
+                if "syst" in sample and ("up" in sample or "down" in sample): continue
 
                 if ('Scan' not in sample) and ('scan' not in sample):
                     # get normal sample yield
@@ -156,7 +159,7 @@ class YieldStore:
 
     def showStats(self):
         print 80*"#"
-        print "Storage contains:"
+        print "Storage %s contains:" %self.name
         print len(self.bins), "Bins:", self.bins
         print len(self.categories), "Categories:", self.categories
         print len(self.samples), "Samples:", self.samples
@@ -242,6 +245,8 @@ class YieldStore:
 
     def printLatexTable(self, samps, printSamps, label, f):
         yds = self.getMixDict(samps)
+        ydsNorm = self.getMixDict([('EWK', 'Kappa'),])
+
         nSource = len(samps)
         nCol = nSource + 4
         f.write('\multicolumn{' + str(nCol) + '}{|c|}{' +label +'} \\\ \n')
@@ -264,15 +269,29 @@ class YieldStore:
             elif LT == LT0 and HT == HT0:
                 f.write('  &  & ' + B + '&' + LTbin +', ' + HTbin + ', ' + Bbin)
 
-            print yds[bin]
+
             for yd in yds[bin]:
                 precision = 2
                 if yd == 0:
                     f.write((' & %.'+str(precision)+'f $\pm$ %.'+str(precision)+'f') % (0.0, 0.0))
                 else:
+                    val = yd.val
+                    err = yd.err
                     if 'Rcs' in yd.cat or 'Kappa' in yd.cat:
                         precision = 4
-                    f.write((' & %.'+str(precision)+'f $\pm$ %.'+str(precision)+'f') % (yd.val, yd.err))
+                    elif 'data_QCDsubtr' in yd.name:
+                        precision = 2
+                    elif '_predict' in yd.cat or 'background' in yd.name:
+                        precision = 0
+                        val = round(yd.val)
+                        err = math.sqrt(round(yd.val))
+
+                    if 'syst' in yd.name:
+                        precision = 2
+                        print val, ydsNorm[bin][0].val
+                        f.write((' & %.'+str(precision)+'f' ) % (val/ydsNorm[bin][0].val*100))
+                    else:
+                        f.write((' & %.'+str(precision)+'f $\pm$ %.'+str(precision)+'f') % (val, err))
 
 
             f.write(' \\\ \n')
@@ -313,6 +332,7 @@ if __name__ == "__main__":
     #samps = {"EWK":"CR_MB","QCD":"CR_SB"}
     #samps = {"EWK":"CR_SB","background_QCDsubtr":"CR_SB","background_QCDsubtr":"Closure"}
 
+    '''
     samps = [
         ("QCD","CR_SB"),
         ("QCD_QCDpred","CR_SB"),
@@ -320,7 +340,7 @@ if __name__ == "__main__":
         ]
     #print yds.getMixDict(samps)
     yds.printMixBins(samps)
-    '''
+
     #print yds.yields
 
     cat = "SR_MB"
@@ -335,3 +355,16 @@ if __name__ == "__main__":
 
     print [s for s in yds.samples if "1500" in s]
     '''
+
+    sysClass = "JEC"
+    samp = "TT"
+    cat = "Kappa"
+
+    samps = [
+        (samp,cat),
+        (samp+"_" + sysClass + "_syst",cat),
+        (samp+"_" + sysClass + "-Up",cat),
+        (samp+"_" + sysClass + "-Down",cat),
+        ]
+    #print yds.getMixDict(samps)
+    yds.printMixBins(samps)
