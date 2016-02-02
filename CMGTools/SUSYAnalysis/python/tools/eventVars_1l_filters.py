@@ -20,7 +20,8 @@ def readList(fname):
             evList.add((int(sline[0]),int(sline[1]),int(sline[2])))
     return evList
 
-cscName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/SingleLepton_csc2015.txt"
+cscName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/Recent/Jan2016/skim/combine.txt"
+#cscName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/SingleLepton_csc2015.txt"
 #cscName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/JetHT_csc2015.txt"
 cscList = readList(cscName)
 
