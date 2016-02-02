@@ -30,20 +30,17 @@ if __name__ == "__main__":
 
     ## Store dict in pickle file
     storeDict = True
-    pckname = "pickles/sigSysts"+mask+".pckz"
+    pckname = "pickles/sigSysts_all"+mask+".pckz"
 
     if storeDict == True and os.path.exists(pckname):
 
-        print "#Loading saved yields from pickle!"
+        print "#Loading saved yields from pickle:", pckname
 
         import cPickle as pickle
         import gzip
         yds = pickle.load( gzip.open( pckname, "rb" ) )
-        #yds.showStats()
-        print [name for name in yds.samples if ("syst" in name and "mGo1500_mLSP1000" in name)]
 
     else:
-
         print "#Reading yields from files!"
 
         # Define storage
@@ -51,55 +48,40 @@ if __name__ == "__main__":
         paths = []
 
         # Add files
-        '''
-        tptPath = "Yields/systs/topPt/MC/allSF_noPU/meth1A/merged/"; paths.append(tptPath)
-        puPath = "Yields/systs/PU/MC/allSF/meth1A/merged/"; paths.append(puPath)
-        wxsecPath = "Yields/systs/wXsec/MC/allSF_noPU/meth1A/merged/"; paths.append(wxsecPath)
-        ttvxsecPath = "Yields/systs/TTVxsec/MC/allSF_noPU/meth1A/merged/"; paths.append(ttvxsecPath)
-        wpolPath = "Yields/systs/Wpol/MC/allSF_noPU/meth1A/merged/"; paths.append(wpolPath)
-        dlConstPath = "Yields/systs/DLConst/merged"; paths.append(dlConstPath)
-        dlSlopePath = "Yields/systs/DLSlope/merged"; paths.append(dlSlopePath)
-        jerPath = "Yields/systs/JER/merged"; paths.append(jerPath)
-        jerNoPath = "Yields/systs/JER_YesNo/merged"; paths.append(jerNoPath)
-        btagPath = "Yields/systs/btag/hadFlavour/fixXsec/allSF_noPU/meth1A/merged/"; paths.append(btagPath)
-        jecPath = "Yields/systs/JEC/MC/allSF_noPU/meth1A/merged/"; paths.append(jecPath)
-        '''
-        jecPath  = "Yields/signal/systs/JEC/allSF_noSF/merged/"; paths.append(jecPath)
+        scalePath  = "Yields/signal/systs/scale/T1tttt/test_env/allSF_noPU/meth1A/merged/"; paths.append(scalePath)
         isrPath  = "Yields/signal/systs/ISR/T1tttt/allSF_noPU_v2/meth1A/merged/"; paths.append(isrPath)
         puPath   = "Yields/signal/systs/pileup/T1tttt/allSF_noPU_fix/meth1A/merged/"; paths.append(puPath)
         btagPath = "Yields/signal/systs/btag/T1tttt/allSF_noPU_fixLepSF/meth1A/merged/"; paths.append(btagPath)
+        jecPath  = "Yields/signal/systs/JEC/allSF_noSF/merged/"; paths.append(jecPath)
+        # for central values
+        #normPath  = "Yields/signal/systs/JEC/allSF_noSF/merged/"; paths.append(normPath)
 
         for path in paths:
             yds.addFromFiles(path+basename,("lep","sele"))
+            #print yds.bins
 
-        print [name for name in yds.samples if ("syst" in name and "mGo1500_mLSP1000" in name)]
-        #yds.showStats()
-
-        print "#Saving yields to pickle"
-
+        print "#Saving yields to pickle:", pckname
         # save to pickle
         import cPickle as pickle
         import gzip
         pickle.dump( yds, gzip.open( pckname, "wb" ) )
 
-    #print [name for name in yds.samples if ("syst" in name and "EWK" in name)]
-    #exit(0)
+    ## Check content
+    #yds.showStats()
+    print [name for name in yds.samples if ("syst" in name and "mGo1500_mLSP100" in name)]
 
-    # Sys types
+    ## Sys types
 #    systs = ["btagHF","btagLF","Wxsec","PU"]#,"topPt"]#,"JEC"]
 #    systs = ["btagHF","btagLF","Wxsec","PU","topPt"]#,"JEC"]
 #    systs = ["btagHF","Wxsec","topPt","PU","DLSlope","DLConst"]#,"JEC"]
 #    systs = ["JEC"]
 #    systs = ["DLConst","DLSlope"]
 #    systs = ["btagHF","btagLF"]
-    systs = ["PU","btagLF","btagHF","ISR","JEC"]
+#    systs = ["PU","btagLF","btagHF","ISR","JEC"]
+    systs = ["Scale-Env","PU","btagLF","btagHF","ISR","JEC"]
+#    systs = ["Scale-Env"]
 #    systs = ["ISR"]
 #    systs = ["btagHF","btagLF","PU"]
-
-#    systs = ["TTVxsec","Wxsec"]
-#    systs = ["Wpol","Wxsec"]
-#    systs = ["Wpol","Wxsec","PU","JEC","btagHF","btagLF","topPt","DLConst","DLSlope","JER","JERYesNo"]
-#    systs = ["TTVxsec","Wpol","Wxsec","PU","JEC","btagHF","btagLF","topPt","DLConst","DLSlope"]
 
     systNames = {
         "btagLF" : "b-mistag (light)",
@@ -108,6 +90,7 @@ if __name__ == "__main__":
         "topPt" : "Top p_{T}",
         "PU" : "PU",
         "ISR": "ISR",
+        "Scale-Env": "Scale",
         #"Wxsec" : "#sigma_{W}",
         "Wxsec" : "W x-sec",
         "TTVxsec" : "TTV x-sec",
@@ -116,6 +99,10 @@ if __name__ == "__main__":
         "JERYesNo" : "JER Yes/No",
         "DLSlope" : "DiLep (N_{j} Slope)",
         "DLConst" : "DiLep (N_{j} Const)",
+        "lumi" : "Lumi.",
+        "trig" : "Trigger",
+        "lepSF": "Lepton SF",
+        "stat": "Stat.",
         }
 
     #sysCols = [2,4,7,8,3,9,6] + range(40,50)#[1,2,3] + range(4,10)
@@ -130,108 +117,123 @@ if __name__ == "__main__":
     # Sample and variable
     samp = "T1tttt_Scan"
     #mass = "mGo1150_mLSP800"
-    mass = "mGo1200_mLSP800"
-    #mass = "mGo1500_mLSP1000"
+    #mass = "mGo1200_mLSP800"
+    mass = "mGo1500_mLSP100"
+
+    masses = [mass]#"mGo1200_mLSP800"]#,"mGo1500_mLSP100"]
 
     var = "SR_MB"
 
-    # canvs and hists
-    hists = []
+    # canvs
     canvs = []
+    allhists = []
 
-    # read in central value
-    signame = samp+"_"+mass
+    for mass in masses:
 
-    hCentral = yp.makeSampHisto(yds,signame,var)
-    yp.prepRatio(hCentral,True)
-    #hCentral.GetYaxis().SetRangeUser()
+        hists = []
 
-    ## Define flat values (i.e. for PU)
-    flats = {}
-    #flats["PU"] =  0.05
+        # read in central value
+        signame = samp+"_"+mass
 
-    ### Add flat systs (lumi, lepSF, triggEff, etc.)
-    flats["lepSF"] = 0.05
-    flats["lumi"] = 0.045
-    flats["trig"] = 0.01
+        hCentral = yp.makeSampHisto(yds,signame,var, signame + "_central")
+        #print hCentral
+        yp.prepRatio(hCentral,True)
+        #hCentral.GetYaxis().SetRangeUser()
 
-    for i, syst in enumerate(flats):
+        ## Define flat values (i.e. for PU)
+        flats = {}
+        #flats["PU"] =  0.05
 
-        if syst in systs: continue
+        ### Add flat systs (lumi, lepSF, triggEff, etc.)
+        #flats["stat"] = 0.1
+        flats["lepSF"] = 0.05
+        flats["lumi"] = 0.045
+        flats["trig"] = 0.01
+        #flats = {}
 
-        #yp.colorDict[syst+"_syst"] = sysCols[i+len(syst)]
-        col = sysCols[i]#+len(syst)]
+        for i, syst in enumerate(sorted(flats.keys())):
 
-        sname = samp+"_"+syst+"_syst_"+mass
-        print "Making FLAT hist for", sname
+            if syst in systs: continue
 
-        hist = hCentral.Clone(syst+"_syst")
-        hist.SetName(syst+"_syst")
-        if syst in systNames: hist.SetTitle(systNames[syst])
-        else: hist.SetTitle(syst)
+            col = sysCols[i]#+len(syst)]
 
-        hist.GetYaxis().SetTitle("Relative uncertainty")
-        hist.GetYaxis().SetTitleSize(0.04)
-        hist.GetYaxis().SetTitleOffset(0.8)
+            sname = samp+"_"+syst+"_syst_"+mass
+            print "Making FLAT hist for", sname
 
-        hist.SetLineColor(col)
-        #hist.SetFillColorAlpha(col,yp._alpha)
-        hist.SetFillColor(col)
-        hist.SetFillStyle(1001)
+            hist = hCentral.Clone(syst+"_syst")
+            hist.SetName(sname + syst+"_syst")
+            if syst in systNames: hist.SetTitle(systNames[syst])
+            else: hist.SetTitle(syst)
 
-        for bin in range(1,hist.GetNbinsX()+1):
-            hist.SetBinContent(bin,flats[syst])
+            hist.GetYaxis().SetTitle("Relative uncertainty")
+            hist.GetYaxis().SetTitleSize(0.04)
+            hist.GetYaxis().SetTitleOffset(0.8)
 
-        # prepend hists
-        #hists.insert(0,hist)
-        hists.append(hist)
+            hist.SetLineColor(col)
+            #hist.SetFillColorAlpha(col,yp._alpha)
+            hist.SetFillColor(col)
+            hist.SetFillStyle(1001)
 
-    # Make REAL syst hists
-    for i,syst in enumerate(systs):
-        yp.colorDict[syst+"_syst"] = sysCols[i+len(flats)]
-
-        sname = samp+"_"+syst+"_syst_"+mass
-        print "Making hist for", sname
-
-        hist = yp.makeSampHisto(yds,sname,var,syst+"_syst")
-        if syst in systNames: hist.SetTitle(systNames[syst])
-        else: hist.SetTitle(syst)
-
-        hist.GetYaxis().SetTitle("Relative uncertainty")
-        hist.GetYaxis().SetTitleSize(0.04)
-        hist.GetYaxis().SetTitleOffset(0.8)
-
-        #print syst, hist.GetNbinsX()
-
-        # Dummy values
-        if syst in flats:
-            print "Replacing syst for %s with a flat %2.2f" %(syst, flats[syst])
             for bin in range(1,hist.GetNbinsX()+1):
-                hist.SetBinContent(bin,flats[syst])
+                if syst == "stat":
+                    hist.SetBinContent(bin,hist.GetBinError(bin)/hist.GetBinContent(bin))
+                else:
+                    hist.SetBinContent(bin,flats[syst])
 
-        #yp.prepKappaHist(hist)
-        #yp.prepRatio(hist)
+            # prepend hists
+            #hists.insert(0,hist)
+            hists.append(hist)
 
-        # normalize to central value
-        #hist.Divide(hCentral)
+        # Make REAL syst hists
+        for i,syst in enumerate(systs):
+            yp.colorDict[syst+"_syst"] = sysCols[i+len(flats)]
 
-        hists.append(hist)
+            sname = samp+"_"+syst+"_syst_"+mass
+            print "Making hist for", sname
 
-    #for hist in hists: print hist.GetName()
+            hist = yp.makeSampHisto(yds,sname,var,sname+syst+"_syst")
+            if syst in systNames: hist.SetTitle(systNames[syst])
+            else: hist.SetTitle(syst)
 
-    # make stack/total syst hists
-    #total = yp.getTotal(hists)
-    stack = yp.getStack(hists)
-    #sqHist = yp.getSquaredSum(hists)
-    sqHist = yp.getSquaredSum(hists[::-1])
+            hist.GetYaxis().SetTitle("Relative uncertainty")
+            hist.GetYaxis().SetTitleSize(0.04)
+            hist.GetYaxis().SetTitleOffset(0.8)
 
-    hCentralUncert = yp.getHistWithError(hCentral, sqHist)
-    canv = yp.plotHists(var+"_"+signame+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TM", 1200, 600)
-#    canv = yp.plotHists(var+"_"+signame+"_Syst",[sqHist]+hists,[hCentral,hCentralUncert],"TM", 1200, 600)
-#    canv = yp.plotHists(var+"_"+signame+"_Stat",[stack,sqHist],hCentral,"TM", 1200, 600)
+            #print syst, hist.GetNbinsX()
 
-    canvs.append(canv)
-    if not yp._batchMode: raw_input("Enter any key to exit")
+            # Dummy values
+            if syst in flats:
+                print "Replacing syst for %s with a flat %2.2f" %(syst, flats[syst])
+                for bin in range(1,hist.GetNbinsX()+1):
+                    hist.SetBinContent(bin,flats[syst])
+
+            #yp.prepKappaHist(hist)
+            #yp.prepRatio(hist)
+
+            # normalize to central value
+            #hist.Divide(hCentral)
+
+            hists.append(hist)
+
+        #for hist in hists: print hist.GetName()
+
+        # make stack/total syst hists
+        #total = yp.getTotal(hists)
+        stack = yp.getStack(hists)
+        #sqHist = yp.getSquaredSum(hists)
+        sqHist = yp.getSquaredSum(hists[::-1])
+
+        hCentralUncert = yp.getHistWithError(hCentral, sqHist)
+
+        # save hists
+        allhists += hists + [hCentral,hCentralUncert,stack, sqHist]
+
+        canv = yp.plotHists(var+"_"+signame+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TM", 1200, 600)
+    #    canv = yp.plotHists(var+"_"+signame+"_Syst",[sqHist]+hists,[hCentral,hCentralUncert],"TM", 1200, 600)
+    #    canv = yp.plotHists(var+"_"+signame+"_Stat",[stack,sqHist],hCentral,"TM", 1200, 600)
+
+        canvs.append(canv)
+        if not yp._batchMode: raw_input("Enter any key to exit")
 
     # Save canvases
     exts = [".pdf",".png",".root"]
@@ -239,8 +241,9 @@ if __name__ == "__main__":
 
     #odir = "BinPlots/Syst/Combine/test/allSF_noPU_Wpol/Method1A/"
     #odir = "BinPlots/Syst/Combine/allSF_noPU_Wpol/Method1A/"
-    odir = "BinPlots/Syst/Signal/allSF_noPU_fixLepSF/Method1A/"
+    odir = "BinPlots/Syst/Signal/allSF_noPU_fixLepSF/Method1A/noStatErr/"
     #odir = "BinPlots/Syst/Signal/allSF_noPU/Method1A/"
+    odir += "/"
     if not os.path.isdir(odir): os.makedirs(odir)
 
     ## Save hists
@@ -249,5 +252,5 @@ if __name__ == "__main__":
 
     for canv in canvs:
         for ext in exts:
-            canv.SaveAs(odir+mask+canv.GetName()+ext)
+            canv.SaveAs(odir+mask+"_"+canv.GetName()+ext)
 
