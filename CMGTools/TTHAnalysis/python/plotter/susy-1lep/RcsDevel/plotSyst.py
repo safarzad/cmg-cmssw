@@ -17,24 +17,29 @@ if __name__ == "__main__":
         sys.argv.remove('-b')
         yp._batchMode = True
 
-    '''
+
     if len(sys.argv) > 1:
         pattern = sys.argv[1]
         print '# pattern is', pattern
     else:
         print "No pattern given!"
-        exit(0)
-    '''
+        pattern = ""
+        #exit(0)
+
+    basename = os.path.basename(pattern)
+    mask = basename.replace("*","X_")
+    print basename, mask
 
     ## Store dict in pickle file
     storeDict = True
+    pckname = "pickles/bkgSysts"+mask+".pck"
 
-    if storeDict == True and os.path.exists("allSysts.pck"):
+    if storeDict == True and os.path.exists(pckname):
 
         print "#Loading saved yields from pickle!"
 
         import cPickle as pickle
-        yds = pickle.load( open( "allSysts.pck", "rb" ) )
+        yds = pickle.load( open( pckname, "rb" ) )
         yds.showStats()
 
     else:
@@ -51,15 +56,16 @@ if __name__ == "__main__":
         wxsecPath = "Yields/systs/wXsec/MC/allSF_noPU/meth1A/merged/"; paths.append(wxsecPath)
         ttvxsecPath = "Yields/systs/TTVxsec/MC/allSF_noPU/meth1A/merged/"; paths.append(ttvxsecPath)
         wpolPath = "Yields/systs/Wpol/MC/allSF_noPU/meth1A/merged/"; paths.append(wpolPath)
-        dlConstPath = "Yields/systs/DLConst/merged"; paths.append(dlConstPath)
-        dlSlopePath = "Yields/systs/DLSlope/merged"; paths.append(dlSlopePath)
-        jerPath = "Yields/systs/JER/merged"; paths.append(jerPath)
-        jerNoPath = "Yields/systs/JER_YesNo/merged"; paths.append(jerNoPath)
+        dlConstPath = "Yields/systs/DLConst/merged/"; paths.append(dlConstPath)
+        dlSlopePath = "Yields/systs/DLSlope/merged/"; paths.append(dlSlopePath)
+        jerPath = "Yields/systs/JER/merged/"; paths.append(jerPath)
+        jerNoPath = "Yields/systs/JER_YesNo/merged/"; paths.append(jerNoPath)
+        #jecPath = "Yields/systs/JEC/MC/allSF_noPU/meth1A/merged/"; paths.append(jecPath)
+        jecPath = "Yields/systs/JEC/MC/allSF_noPU_fixLT/meth1A/merged/"; paths.append(jecPath)
         btagPath = "Yields/systs/btag/hadFlavour/fixXsec/allSF_noPU/meth1A/merged/"; paths.append(btagPath)
-        jecPath = "Yields/systs/JEC/MC/allSF_noPU/meth1A/merged/"; paths.append(jecPath)
 
         for path in paths:
-            yds.addFromFiles(path,("lep","sele"))
+            yds.addFromFiles(path+"/"+basename,("lep","sele"))
 
         yds.showStats()
 
@@ -67,7 +73,7 @@ if __name__ == "__main__":
 
         # save to pickle
         import cPickle as pickle
-        pickle.dump( yds, open( "allSysts.pck", "wb" ) )
+        pickle.dump( yds, open( pckname, "wb" ) )
 
     #print [name for name in yds.samples if ("syst" in name and "EWK" in name)]
     #exit(0)
@@ -168,12 +174,12 @@ if __name__ == "__main__":
     #exts = [".pdf"]
 
     #odir = "BinPlots/Syst/Combine/test/allSF_noPU_Wpol/Method1A/"
-    odir = "BinPlots/Syst/Combine/allSF_noPU_Wpol/Method1A/"
+    odir = "BinPlots/Syst/Combine/allSF_noPU_LTfix/Method1A/"
     if not os.path.isdir(odir): os.makedirs(odir)
 
     ## Save hists
-    pattern = "Syst"
-    mask = pattern
+    #pattern = "Syst"
+    #mask = pattern
 
     for canv in canvs:
         for ext in exts:
