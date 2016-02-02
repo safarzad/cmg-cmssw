@@ -276,8 +276,6 @@ def prepRatio(hist, keepStyle = False):
     hist.GetYaxis().SetTitleSize(0.08)
     hist.GetYaxis().SetTitleOffset(0.3)
     hist.GetYaxis().SetLabelSize(0.1)
-    #hist.GetYaxis().SetRangeUser(0.05,2.1)
-
     hist.GetXaxis().SetLabelSize(0.1)
 
     hist.SetFillColor(0)
@@ -286,6 +284,9 @@ def prepRatio(hist, keepStyle = False):
     if not keepStyle:
         hist.SetLineColor(1)
         hist.SetMarkerColor(1)
+        print hist.GetName()
+        #if ("SR" not in hist.GetName()) or ("CR" not in hist.GetName()):
+        hist.GetYaxis().SetRangeUser(0.05,2.1)
 
     return hist
 
@@ -362,7 +363,12 @@ def getPull(histA,histB):
 
 def getStack(histList):
 
-    stack = THStack("stack","stack")
+    if len(histList) == 0: return 0
+
+    hname = histList[0].GetName() + "stack"
+
+    #stack = THStack("stack","stack")
+    stack = THStack(hname,histList[0].GetTitle())
 
     for i,hist in enumerate(histList):
         stack.Add(hist)
@@ -381,7 +387,7 @@ def getStack(histList):
 
 def getSquaredSum(histList):
 
-    sqHist = histList[0].Clone()
+    sqHist = histList[0].Clone(histList[0].GetName() + "_sqSum")
 
     for i,hist in enumerate(histList):
         if i > 0:
@@ -492,13 +498,12 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
         ratio.Draw("pe1")
 
         # 1 - line
+        rname = ratio.GetName()
         #xmin = ratio.GetXaxis().
-        if "pull" in ratio.GetName():
-            line = TLine(0,0,ratio.GetNbinsX(),0)
-        elif "ratio" in ratio.GetName():
-            line = TLine(0,1,ratio.GetNbinsX(),1)
-        else:
-            line = None#TLine(0,0,ratio.GetNbinsX(),0)
+        if "pull" in rname: line = TLine(0,0,ratio.GetNbinsX(),0)
+        elif "ratio" in rname: line = TLine(0,1,ratio.GetNbinsX(),1)
+        elif "Kappa" in rname: line = TLine(0,1,ratio.GetNbinsX(),1)
+        else: line = None #TLine(0,0,ratio.GetNbinsX(),0)
 
         if line != None:
             line.SetLineWidth(1)
