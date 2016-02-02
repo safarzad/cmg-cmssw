@@ -102,7 +102,9 @@ class EventVars1L_signal:
             #ret['totalNgen'] = cntTotal
 
             if (mGo,mLSP) in cntsSusy:
-                ret['totalNgen'] = cntsSusy[(mGo,mLSP)][0]
+                #ret['totalNgen'] = cntsSusy[(mGo,mLSP)][0] # merged scan: 93743963
+                if "Scan" in self.sample: ret['totalNgen'] = 93743963
+                else: ret['totalNgen'] = cntsSusy[(mGo,mLSP)][0]
                 ret['susyNgen'] = cntsSusy[(mGo,mLSP)][1]
                 ret['susyWgen'] = cntsSusy[(mGo,mLSP)][2]
             else:
