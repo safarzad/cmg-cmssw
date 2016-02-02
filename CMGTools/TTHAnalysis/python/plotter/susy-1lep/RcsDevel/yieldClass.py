@@ -12,10 +12,10 @@ def readSystFile():
     systDict = {}
     with open('sysTable.dat',"r") as xfile:
         lines = xfile.readlines()
-        systs = lines[0].replace(' ','').replace('\n','').split('|') 
+        systs = lines[0].replace(' ','').replace('\n','').split('|')
         print systs
         for line in lines[1:]:
-            values = line.replace(' ','').replace('\n','').split('|')            
+            values = line.replace(' ','').replace('\n','').split('|')
             binMB = values[0]
             binSB = values[1]
             singleSysts = {}
@@ -77,7 +77,14 @@ class YieldStore:
 
         return 1
 
-    def addBinYields(self, fname, leptype = ("lep","sele")):
+    def appendStorage(self, yds):
+        ## Append another yieldStorage
+        self.yields.update(yds.yields)
+        self.bins += yds.bins
+        self.categories += yds.categories
+        self.samples += yds.samples
+
+    def addBinYields(self, fname, leptype = ("lep","sele"), pattern = ""):
 
         # Open file and get bin name
         tfile = TFile(fname,"READ")
@@ -124,9 +131,20 @@ class YieldStore:
                 if "TH" not in hist.ClassName(): continue
                 sample = hist.GetName()
 
-                ## Ignore Up/Down variations:
-                if "syst" in sample and ("Up" in sample or "Down" in sample): continue
-                if "syst" in sample and ("up" in sample or "down" in sample): continue
+                ## Ignore variations:
+                ignpattern = ["Up","up","Down","down","Env"]
+                skip = False
+
+                if "syst" not in sample:
+                    for pat in ignpattern:
+                        if pat in sample: skip = True; break
+
+                #if "syst" in sample and ("Up" in sample or "Down" in sample): continue
+                #if "syst" in sample and ("up" in sample or "down" in sample): continue
+
+                if pattern not in sample: skip == True
+                # Skip unneeded samples
+                if skip: continue
 
                 if ('Scan' not in sample) and ('scan' not in sample):
                     # get normal sample yield
@@ -321,7 +339,7 @@ class YieldStore:
                             syserr = syserr + (val*(1.0-float(systDict[bin][syst])))*(val*(1.0-float(systDict[bin][syst])))
                         syserr = math.sqrt(syserr)
                         print syserr, val
-                    
+
                     if doSys and 'syst' in yd.name:
                         precision = 2
                         print val, ydsNorm[bin][0].val
