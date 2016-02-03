@@ -22,6 +22,7 @@ if __name__ == "__main__":
         pattern = sys.argv[1]
         print '# pattern is', pattern
     else:
+        #pattern = ""
         print "No pattern given!"
         exit(0)
 
@@ -39,13 +40,14 @@ if __name__ == "__main__":
 
     ## Store dict in pickle file
     storeDict = True
+    pckname = "pickles/bkgSysts"+mask+".pck"
 
-    if storeDict == True and os.path.exists("allSysts.pck"):
+    if storeDict == True and os.path.exists(pckname):
 
         print "#Loading saved yields from pickle!"
 
         import cPickle as pickle
-        ydsSyst = pickle.load( open( "allSysts.pck", "rb" ) )
+        ydsSyst = pickle.load( open( pckname, "rb" ) )
         ydsSyst.showStats()
 
     else:
@@ -62,10 +64,10 @@ if __name__ == "__main__":
         wxsecPath = "Yields/systs/wXsec/MC/allSF_noPU/meth1A/merged/"; paths.append(wxsecPath)
         ttvxsecPath = "Yields/systs/TTVxsec/MC/allSF_noPU/meth1A/merged/"; paths.append(ttvxsecPath)
         wpolPath = "Yields/systs/Wpol/MC/allSF_noPU/meth1A/merged/"; paths.append(wpolPath)
-        dlConstPath = "Yields/systs/DLConst/merged"; paths.append(dlConstPath)
-        dlSlopePath = "Yields/systs/DLSlope/merged"; paths.append(dlSlopePath)
-        jerPath = "Yields/systs/JER/merged"; paths.append(jerPath)
-        jerNoPath = "Yields/systs/JER_YesNo/merged"; paths.append(jerNoPath)
+        dlConstPath = "Yields/systs/DLConst/merged/"; paths.append(dlConstPath)
+        dlSlopePath = "Yields/systs/DLSlope/merged/"; paths.append(dlSlopePath)
+        jerPath = "Yields/systs/JER/merged/"; paths.append(jerPath)
+        jerNoPath = "Yields/systs/JER_YesNo/merged/"; paths.append(jerNoPath)
         btagPath = "Yields/systs/btag/hadFlavour/fixXsec/allSF_noPU/meth1A/merged/"; paths.append(btagPath)
         jecPath = "Yields/systs/JEC/MC/allSF_noPU/meth1A/merged/"; paths.append(jecPath)
 
@@ -77,7 +79,7 @@ if __name__ == "__main__":
 
         # save to pickle
         import cPickle as pickle
-        pickle.dump( ydsSyst, open( "allSysts.pck", "wb" ) )
+        pickle.dump( ydsSyst, open( pckname, "wb" ) )
 
     # Sys types
 #    systs = ["btagHF","Wxsec","topPt","PU","DLSlope","DLConst"]#,"JEC"]
@@ -127,9 +129,9 @@ if __name__ == "__main__":
     hTotal = yp.getTotal(mcHists)
 
     # for MC closure
-    mcsamp = "EWK_poisson"
-    mcsamp = "background_poisson_QCDsubtr"
-    hMCpred = yp.makeSampHisto(yds,mcsamp,cat,"MC_prediction"); hMCpred.SetTitle("MC (Pred)")
+    #mcsamp = "EWK_poisson"
+    #mcsamp = "background_poisson_QCDsubtr"
+    #hMCpred = yp.makeSampHisto(yds,mcsamp,cat,"MC_prediction"); hMCpred.SetTitle("MC (Pred)")
 
     # DATA
     hDataPred = yp.makeSampHisto(yds,"data_QCDsubtr",cat,"Data_prediction"); hDataPred.SetTitle("Data (Pred)")
@@ -144,13 +146,13 @@ if __name__ == "__main__":
     #hDataPred = hMCpred
 
     # Ratio
-    #ratio = yp.getRatio(hTotal,hDataPred)
-    ratio = yp.getRatio(hData,hDataPred)
+    ratio = yp.getRatio(hTotal,hDataPred)
+    #ratio = yp.getRatio(hData,hDataPred)
 
     logY = True
     #logY = False
     cname = "Data_2p24fb_"+mask
-    canv = yp.plotHists("SR_MB_Prediction",[mcStack,hTotal,hDataPred,hData],ratio,'TM', 1200, 600, logY = logY)
+    canv = yp.plotHists("SR_MB_Prediction",[mcStack,hTotal,hDataPred],ratio,'TM', 1200, 600, logY = logY)
     #canv = yp.plotHists("MC_2p24fb_"+cat+'_'+mask,[mcStack,hTotal,hDataPred],ratio,'TM', 1200, 600, logY = logY)
 
     canv.SetName(cname + canv.GetName())
@@ -164,7 +166,7 @@ if __name__ == "__main__":
     exts = [".pdf",".png",".root"]
     #exts = [".pdf"]
 
-    odir = "BinPlots/Data/Pred/unbld/allSF_noPU/Method1A/"
+    odir = "BinPlots/Data/Pred/unbld_nodata/allSF_noPU/Method1A/"
     #odir = "BinPlots/Syst/btag/hadronFlavour/allSF_noPU/Method1B/"
     if not os.path.isdir(odir): os.makedirs(odir)
 
