@@ -120,17 +120,17 @@ def makeSystHists(fileList):
     #systNames = ["topPt"]
     #systNames = ["Wxsec"]
     #systNames = ["TTVxsec"]
-    #systNames = ["JEC"]
+    systNames = ["JEC"]
     #systNames = ["DLSlope"]
     #systNames = ["DLConst"]
     #systNames = ["JER"]
     #systNames = ["Wpol"]
     #systNames = ["btagHF","btagLF"]
-    systNames = ["ISR"]
+    #systNames = ["ISR"]
 
     #bindirs =  ['SR_MB','CR_MB','SR_SB','CR_SB']
     #bindirs =  ['SR_MB','CR_MB','SR_SB','CR_SB','Kappa','Rcs_MB','Rcs_SB']
-    bindirs = getDirNames(fileList[0])
+    bindirs = getDirNames(fileList[0])# + [""]
     print "Found those dirs:", bindirs
 
     # dir to store
@@ -148,7 +148,10 @@ def makeSystHists(fileList):
             for hname in hnames:
                 for syst in systNames:
 
-                    (hSyst,hUp,hDown) = getSystHist(tfile, bindir+'/'+ hname, syst)
+                    if bindir != "":
+                        (hSyst,hUp,hDown) = getSystHist(tfile, bindir+'/'+ hname, syst)
+                    else:
+                        (hSyst,hUp,hDown) = getSystHist(tfile, hname, syst)
 
                     if hSyst:
                         tfile.cd(bindir)

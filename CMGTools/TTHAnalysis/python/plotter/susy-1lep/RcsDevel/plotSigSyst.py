@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     ## Store dict in pickle file
     storeDict = True
-    pckname = "pickles/sigSysts_all"+mask+".pckz"
+    pckname = "pickles/sigSysts_Scale_"+mask+".pckz"
 
     if storeDict == True and os.path.exists(pckname):
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         paths = []
 
         # Add files
-        scalePath  = "Yields/signal/systs/scale/T1tttt/test_env/allSF_noPU/meth1A/merged/"; paths.append(scalePath)
+        scalePath  = "Yields/signal/systs/scale/T1tttt/normScale2/allSF_noPU/meth1A/merged/"; paths.append(scalePath)
         isrPath  = "Yields/signal/systs/ISR/T1tttt/allSF_noPU_v2/meth1A/merged/"; paths.append(isrPath)
         puPath   = "Yields/signal/systs/pileup/T1tttt/allSF_noPU_fix/meth1A/merged/"; paths.append(puPath)
         btagPath = "Yields/signal/systs/btag/T1tttt/allSF_noPU_fixLepSF/meth1A/merged/"; paths.append(btagPath)
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     ## Check content
     #yds.showStats()
-    print [name for name in yds.samples if ("syst" in name and "mGo1500_mLSP100" in name)]
+    print [name for name in yds.samples if ("syst" in name and "mGo1200_mLSP800" in name)]
 
     ## Sys types
 #    systs = ["btagHF","btagLF","Wxsec","PU"]#,"topPt"]#,"JEC"]
@@ -118,7 +118,8 @@ if __name__ == "__main__":
     samp = "T1tttt_Scan"
     #mass = "mGo1150_mLSP800"
     #mass = "mGo1200_mLSP800"
-    mass = "mGo1500_mLSP100"
+    #mass = "mGo1500_mLSP100"
+    mass = "mGo1000_mLSP100"
 
     masses = [mass]#"mGo1200_mLSP800"]#,"mGo1500_mLSP100"]
 
@@ -228,7 +229,8 @@ if __name__ == "__main__":
         # save hists
         allhists += hists + [hCentral,hCentralUncert,stack, sqHist]
 
-        canv = yp.plotHists(var+"_"+signame+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TM", 1200, 600)
+        canv = yp.plotHists(var+"_"+signame,[stack,sqHist],[hCentral,hCentralUncert],"TM", 1200, 600)
+        canv.SetName(canv.GetName()+"_Syst")
     #    canv = yp.plotHists(var+"_"+signame+"_Syst",[sqHist]+hists,[hCentral,hCentralUncert],"TM", 1200, 600)
     #    canv = yp.plotHists(var+"_"+signame+"_Stat",[stack,sqHist],hCentral,"TM", 1200, 600)
 
