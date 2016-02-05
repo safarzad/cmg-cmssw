@@ -10,6 +10,13 @@ from CMGTools.TTHAnalysis.treeReAnalyzer import *
 # Text files
 ###############
 
+
+filterName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/Recent/Jan2016/skim/combine.txt"
+#filterName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/SingleLepton_csc2015.txt"
+#filterName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/JetHT_csc2015.txt"
+#filterList = readList(filterName)
+filterList = None
+
 def readList(fname):
     evList = set()
     with open(fname,"r") as flist:
@@ -18,19 +25,16 @@ def readList(fname):
             sline = line.split(":")
             if len(sline) != 3: continue
             evList.add((int(sline[0]),int(sline[1]),int(sline[2])))
+
+
+    print 80*"#"
+    print "MET filters"
+    print "Loaded %i events into CSC Filter list" %len(evList)
+    print 80*"#"
+
     return evList
 
-cscName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/Recent/Jan2016/skim/combine.txt"
-#cscName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/SingleLepton_csc2015.txt"
-#cscName = "/afs/desy.de/user/l/lobanov/public/SUSY/Run2/METfilters/JetHT_csc2015.txt"
-cscList = readList(cscName)
-
-print 80*"#"
-print "MET filters"
-print "Loaded %i events into CSC Filter list" %len(cscList)
-print 80*"#"
-
-#print list(cscList)[:10]
+#print list(filterList)[:10]
 
 class EventVars1L_filters:
     def __init__(self):
@@ -47,8 +51,11 @@ class EventVars1L_filters:
         ret = {}
 
         if event.isData:
+            global filterList
+            if filterList == None: filterList = readList(filterName)
+
             # check MET text filter files
-            if (event.run,event.lumi,event.evt) in cscList:
+            if (event.run,event.lumi,event.evt) in filterList:
                 #print "yes", event.run,event.lumi,event.evt
                 ret['passCSCFilterList'] = False
             else:
