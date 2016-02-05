@@ -60,6 +60,8 @@ maxLHEidx = 10
 
 def loadLHE():
 
+    print "Loading mean LHE weights"
+
     global lheDict
 
     import cPickle as pickle
