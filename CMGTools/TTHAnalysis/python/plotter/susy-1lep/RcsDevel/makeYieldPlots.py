@@ -250,6 +250,8 @@ def getMarks(hist):
 
     if hist.ClassName() == "THStack":
         hist = hist.GetHistogram()
+    elif "TGaph" in hist.ClassName():
+        hist = hist.GetHistogram()
 
     # line markers
     marks = []
@@ -294,33 +296,47 @@ def prepRatio(hist, keepStyle = False):
 def getRatio(histA,histB, keepStyle = False):
 
     ratio = histA.Clone("ratio_"+histA.GetName()+"_"+histB.GetName())
-    ratio.Divide(histB)
+    if "TGraph" not in histA.ClassName():
+        ratio.Divide(histB)
+        hRatio = ratio
+    else:
+        for i in xrange(ratio.GetN()):
+            x    = ratio.GetX()[i]
+            div  = histB.GetBinContent(histB.GetXaxis().FindBin(x))
+            ratio.SetPoint(i, x, ratio.GetY()[i]/div if div > 0 else 0)
+            ratio.SetPointError(i, ratio.GetErrorXlow(i), ratio.GetErrorXhigh(i),
+                                ratio.GetErrorYlow(i)/div  if div > 0 else 0,
+                                ratio.GetErrorYhigh(i)/div if div > 0 else 0)
+            #if div > 0:
+            #    print i, x, div, ratio.GetY()[i]/div
 
-    #ratio.GetYaxis().SetTitle("Ratio")
+        hRatio = ratio.GetHistogram()
+
+    #hRatio.GetYaxis().SetTitle("Ratio")
     title = "#frac{%s}{%s}" %(histA.GetTitle(),histB.GetTitle())
-    ratio.GetYaxis().SetTitle(title)
-    ratio.GetYaxis().CenterTitle()
-    ratio.GetYaxis().SetNdivisions(505)
-    ratio.GetYaxis().SetTitleSize(0.08)
-    ratio.GetYaxis().SetTitleOffset(0.3)
-    ratio.GetYaxis().SetLabelSize(0.1)
+    hRatio.GetYaxis().SetTitle(title)
+    hRatio.GetYaxis().CenterTitle()
+    hRatio.GetYaxis().SetNdivisions(505)
+    hRatio.GetYaxis().SetTitleSize(0.08)
+    hRatio.GetYaxis().SetTitleOffset(0.3)
+    hRatio.GetYaxis().SetLabelSize(0.1)
 
-    ymax = min(2.9,1.3*ratio.GetMaximum())
-    ymin = 0.8*min(ratio.GetMinimum(),0.85)
-    ratio.GetYaxis().SetRangeUser(ymin,ymax)
-    ratio.SetMaximum(ymax)
-    ratio.SetMinimum(ymin)
+    ymax = min(2.9,1.3*hRatio.GetMaximum())
+    ymin = 0.8*min(hRatio.GetMinimum(),0.85)
+    hRatio.GetYaxis().SetRangeUser(ymin,ymax)
+    hRatio.SetMaximum(ymax)
+    hRatio.SetMinimum(ymin)
 
-    ratio.GetXaxis().SetLabelSize(0.1)
+    hRatio.GetXaxis().SetLabelSize(0.1)
 
     if not keepStyle:
-        ratio.SetLineColor(1)
-        ratio.SetMarkerColor(1)
-        ratio.SetMarkerStyle(20)
-    ratio.SetFillColor(0)
-    ratio.SetFillStyle(0)
+        hRatio.SetLineColor(1)
+        hRatio.SetMarkerColor(1)
+        hRatio.SetMarkerStyle(20)
+    hRatio.SetFillColor(0)
+    hRatio.SetFillStyle(0)
 
-    _histStore[ratio.GetName()] = ratio
+    _histStore[hRatio.GetName()] = ratio
     return ratio
 
 def getPull(histA,histB):
@@ -438,6 +454,14 @@ def getTotal(histList):
 
     return total
 
+def setUnc(hist):
+
+    hist.SetLineColor(0)
+    hist.SetFillColor(kGray)
+    hist.SetFillStyle(3244)
+    hist.SetMarkerStyle(0)
+    hist.SetMarkerColor(0)
+
 def getCatLabel(name):
 
     cname = name
@@ -450,6 +474,13 @@ def getCatLabel(name):
     cname = cname.replace("MB predict X NJ68X","N_{j} #in [6,8]")
     cname = cname.replace("MB predict X NJ9X","N_{j} #geq 9")
     #cname = cname.replace("MB","N_{j} == 5")
+
+    # Signal
+    cname = cname.replace("T1tttt Scan","T1tttt")
+    if "mLSP" in cname:
+        cname = cname.replace("mGo","(")
+        cname = cname.replace(" mLSP",",")
+        cname += ")"
 
     return cname
 
@@ -495,15 +526,26 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
         p1.Draw();
 
         p2.cd()
-        ratio.Draw("pe1")
+
+        if "Uncert" in ratio.GetName():
+            plotOpt = "e2"
+        else:
+            plotOpt = "pe1"
 
         # 1 - line
-        rname = ratio.GetName()
-        #xmin = ratio.GetXaxis().
-        if "pull" in rname: line = TLine(0,0,ratio.GetNbinsX(),0)
-        elif "ratio" in rname: line = TLine(0,1,ratio.GetNbinsX(),1)
-        elif "Kappa" in rname: line = TLine(0,1,ratio.GetNbinsX(),1)
-        else: line = None #TLine(0,0,ratio.GetNbinsX(),0)
+        if "TH1" not in ratio.ClassName():
+            ratio.Draw(plotOpt+"A")
+            hRatio = ratio.GetHistogram()
+        else:
+            ratio.Draw(plotOpt)
+            hRatio = ratio
+
+        rname = hRatio.GetName()
+        #xmin = hRatio.GetXaxis().
+        if "pull" in rname: line = TLine(0,0,hRatio.GetNbinsX(),0)
+        elif "ratio" in rname: line = TLine(0,1,hRatio.GetNbinsX(),1)
+        elif "Kappa" in rname: line = TLine(0,1,hRatio.GetNbinsX(),1)
+        else: line = None #TLine(0,0,hRatio.GetNbinsX(),0)
 
         if line != None:
             line.SetLineWidth(1)
@@ -511,13 +553,13 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
             SetOwnership(line,0)
 
         # plot bins separator
-        marks = getMarks(ratio)
+        marks = getMarks(hRatio)
         # do vertical lines
         if len(marks) != 0:
             #print marks
-            axis = ratio.GetXaxis()
-            ymin = ratio.GetMinimum(); ymax = ratio.GetMaximum()
-            #ymin = ratio.GetYaxis().GetXmin(); ymax = ratio.GetYaxis().GetXmax()
+            axis = hRatio.GetXaxis()
+            ymin = hRatio.GetMinimum(); ymax = hRatio.GetMaximum()
+            #ymin = hRatio.GetYaxis().GetXmin(); ymax = hRatio.GetYaxis().GetXmax()
             for i,mark in enumerate(marks):
                 pos = axis.GetBinLowEdge(mark)
                 line = TLine(pos,ymin,pos,ymax)
@@ -529,7 +571,11 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
 
         if multRatio:
             for rat in ratios[1:]:
-                rat.Draw("pe2same")
+                #rat.Draw(plotOpt+"same")
+                if "TGraph" in rat.ClassName():
+                    rat.Draw("pe1same")
+                else:
+                    rat.Draw("pe1same")
 
         p1.cd();
     else:
@@ -548,7 +594,7 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
     # for fractions set min to 0
     if not logY:
         if ymax < 1.01 and ymax >= 1: ymax == 1; ymin = 0 # for fractions
-        else: ymax *= 1.5; ymin *= 0.5
+        else: ymax *= 1.5; ymin *= 0.5; ymin = max(0,ymin)
     else:
         ymax *= 100; ymin = max(0.05,0.5*ymin)
 
@@ -598,6 +644,9 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
         elif "total" in hist.GetName():
             hist.Draw(plotOpt+"E2")
             leg.AddEntry(hist,"MC Uncertainty","f")
+        elif "uncert" in hist.GetName():
+            hist.Draw(plotOpt+"E2")
+            leg.AddEntry(hist,hist.GetTitle(),"f")
         elif "Syst" in hist.GetName():
             hist.Draw(plotOpt+"E2")
             leg.AddEntry(hist,hist.GetTitle(),"f")
