@@ -107,7 +107,7 @@ def findMatchBins(binname):
     elif 'NJ5' in binname:
         njSB = 'NJ4f5'
     else:
-        print "No match found"
+        print "No match found:", binname
         exit(0)
 
     SBname = matchSB(binname)# + '_NJ45'
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     # find files matching pattern
     fileList = glob.glob(pattern+"*.root")
 
-    bins = ['NJ5','NJ68','NJ9i']
+    bins = ['NJ5','NJ68','NJ9i','Few']
 
     for bin in bins:
         print "Merging bin:", bin
