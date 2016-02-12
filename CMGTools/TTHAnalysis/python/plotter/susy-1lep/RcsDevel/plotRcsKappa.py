@@ -4,6 +4,7 @@ import sys,os
 import makeYieldPlots as yp
 
 yp._batchMode = False
+yp._alpha = 0.35
 
 if __name__ == "__main__":
 
@@ -23,50 +24,73 @@ if __name__ == "__main__":
         exit(0)
 
     #BinMask LTX_HTX_NBX_NJX for canvas names
+
+    nBs = ["NB"]#"NB1","NB2","NB3"]
+    nJs = ["NJ"]#"NJ68","NJ9i"]
+
     basename = os.path.basename(pattern)
-    mask = basename.replace("*","X_")
+    print basename
 
-    yds = yp.YieldStore("Sele")
-    yds.addFromFiles(pattern,("lep","sele"))
+    if basename == 'LT':
+        for nB in nBs:
+            for nJ in nJs:
+                patternnew = pattern + "*" + nB + "*" + nJ
+                basenamenew = os.path.basename(patternnew)
+                mask = basenamenew.replace("*","X_")
 
-    canvs = []
+                print "Plots for", patternnew
 
-    # Samples
-    samps = ["EWK","TT","TTdiLep","TTsemiLep","WJets"]
+                yds = yp.YieldStore("lepYields")
+                yds.addFromFiles(patternnew,("lep","sele"))
+                yds.showStats()
 
-    for samp in samps:
+                canvs = []
 
-        # RCS MB
-        yp.colorDict[samp+"_Rcs_MB"] = yp.kBlue
-        hRcsMB = yp.makeSampHisto(yds,samp,"Rcs_MB",samp+"_Rcs_MB")
-        hRcsMB.SetTitle("R_{CS} (MB)")
+                # Samples
+                samps = ["EWK"]#,"TT","TTdiLep","TTsemiLep","WJets"]
 
-        # RCS SB
-        yp.colorDict[samp+"_Rcs_SB"] = yp.kRed
-        hRcsSB = yp.makeSampHisto(yds,samp,"Rcs_SB",samp+"_Rcs_SB")
-        hRcsSB.SetTitle("R_{CS} (SB)")
+                for samp in samps:
 
-        # Kappa
-        yp.colorDict[samp+"_Kappa"] = yp.kBlack
-        hKappa = yp.makeSampHisto(yds,samp,"Kappa",samp+"_Kappa")
-        hKappa.SetTitle("#kappa")
+                    # RCS MB
+                    yp.colorDict[samp+"_Rcs_MB"] = yp.kBlue
+                    hRcsMB = yp.makeSampHisto(yds,samp,"Rcs_MB",samp+"_Rcs_MB")
+                    hRcsMB.SetTitle("R_{CS} (MB)")
 
-        yp.prepKappaHist(hKappa)
-        yp.prepRatio(hKappa)
+                    # RCS SB
+                    yp.colorDict[samp+"_Rcs_SB"] = yp.kRed
+                    hRcsSB = yp.makeSampHisto(yds,samp,"Rcs_SB",samp+"_Rcs_SB")
+                    hRcsSB.SetTitle("R_{CS} (SB)")
 
-        canv = yp.plotHists(samp+"_RcsKappa_",[hRcsMB,hRcsSB],hKappa)
-        canvs.append(canv)
+                    # Kappa
+                    yp.colorDict[samp+"_Kappa"] = yp.kBlack
+                    hKappa = yp.makeSampHisto(yds,samp,"Kappa",samp+"_Kappa")
+                    hKappa.SetTitle("#kappa")
 
-        if not yp._batchMode: raw_input("Enter any key to exit")
+                    yp.prepKappaHist(hKappa)
+                    yp.prepRatio(hKappa)
 
+                    canv = yp.plotHists(samp+"_RcsKappa_",[hRcsMB,hRcsSB],hKappa, legPos = "TM", width = 1200, height = 600)
+                    canvs.append(canv)
 
-    # Save canvases
-    exts = [".pdf",".png"]
-    #exts = [".pdf"]
+                    if not yp._batchMode: raw_input("Enter any key to exit")
 
-    odir = "BinPlots/Rcs/test/"
+                    exts = [".pdf",".png",".root"]
 
-    for canv in canvs:
-        for ext in exts:
-            canv.SaveAs(odir+mask+canv.GetName()+ext)
+                    odir = "BinPlots/MC/RcsKappa/test/"+mask+"/"
+                    if not os.path.exists(odir): os.makedirs(odir)
 
+                    for ext in exts:
+                        canv.SaveAs(odir+canv.GetName()+ext)
+
+                '''
+                # Save canvases
+                exts = [".pdf",".png"]
+                #exts = [".pdf"]
+
+                odir = "BinPlots/Rcs/test/"
+
+                for canv in canvs:
+                    for ext in exts:
+                        canv.SaveAs(odir+mask+canv.GetName()+ext)
+
+                '''
