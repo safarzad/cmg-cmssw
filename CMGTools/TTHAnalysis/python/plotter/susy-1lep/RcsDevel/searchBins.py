@@ -49,6 +49,46 @@ binsSR['SR'] = ('abs(isSR) == 1','$\delta \phi > $ x')
 binsCR = {}
 binsCR['CR'] = ('isSR == 0','$\delta \phi < $ x')
 
+### variable DeltaPhi cuts
+'''
+dPhiCuts = {}# "SR":{}, "CR":{}}
+
+dPhiCuts['NJ6']['LT1']['SR'] = ('dPhi > 1','$\delta \phi > $ x')
+dPhiCuts['NJ6']['LT1']['CR'] = ('dPhi < 1','$\delta \phi < $ x')
+'''
+
+def getSRcut(nj_bin, lt_bin, sr_bin):
+
+    dPhiCut = "dPhi "
+    cutLbl = "$\delta \phi "
+
+    if "SR" in sr_bin:
+        dPhiCut += " > "
+        cutLbl += " > $ "
+    elif "CR" in sr_bin:
+        dPhiCut += " < "
+        cutLbl += " < $ "
+
+    if "9"   in nj_bin: cuts = { "LT1": 1.0, "LT2": 0.75, "LT3i": 0.75 }
+    elif "6" in nj_bin: cuts = { "LT1": 1.0, "LT2": 0.75, "LT3": 0.75, "LT4i": 0.5 }
+    elif "5" in nj_bin: cuts = { "LT1": 1.0, "LT2": 0.75, "LT3": 0.75, "LT4i": 0.5 }
+    else:
+        print "Unknown SR!", nj_bin, lt_bin
+        return 0
+
+    for bin in cuts:
+        if bin in lt_bin:
+            cut = cuts[bin]; break
+    else:
+        print "No cut found for", nj_bin, lt_bin
+        cut = 0
+
+    dPhiCut += str(cut)
+    cutLbl += str(cut)
+
+    #print nj_bin, lt_bin, sr_bin, dPhiCut, cutLbl
+
+    return (dPhiCut,cutLbl)
 
 ################
 # MAKE CUT LISTS
@@ -241,13 +281,19 @@ for nj_bin in ['NJ45f6','NJ68']:#binsNJ.iteritems():
 
                 # split to SR/CR
                 for sr_bin in ['SR']:
-                    sr_cut = binsSR[sr_bin][0]
+                    # use isSR var
+                    #sr_cut = binsSR[sr_bin][0]
+                    # use varying dPhi
+                    sr_cut = getSRcut(nj_bin, lt_bin, sr_bin)[0]
 
                     binname = "%s_%s_%s_%s_%s" %(lt_bin,ht_bin,nb_bin,nj_bin,sr_bin)
                     cutDictSR[binname] = [("base",lt_bin,lt_cut),("base",ht_bin,ht_cut),("base",nb_bin,nb_cut),("base",nj_bin,nj_cut),("base",sr_bin,sr_cut)]
 
                 for cr_bin in ['CR']:
-                    cr_cut = binsCR[cr_bin][0]
+                    # use isSR var
+                    #cr_cut = binsCR[cr_bin][0]
+                    # use varying dPhi
+                    cr_cut = getSRcut(nj_bin, lt_bin, cr_bin)[0]
 
                     binname = "%s_%s_%s_%s_%s" %(lt_bin,ht_bin,nb_bin,nj_bin,cr_bin)
                     cutDictCR[binname] = [("base",lt_bin,lt_cut),("base",ht_bin,ht_cut),("base",nb_bin,nb_cut),("base",nj_bin,nj_cut),("base",cr_bin,cr_cut)]
@@ -311,13 +357,19 @@ for nj_bin in ['NJ45f9','NJ9i']:#binsNJ.iteritems():
 # split to SR/CR
 
                 for sr_bin in ['SR']:
-                    sr_cut = binsSR[sr_bin][0]
+                    # use isSR var
+                    #sr_cut = binsSR[sr_bin][0]
+                    # use varying dPhi
+                    sr_cut = getSRcut(nj_bin, lt_bin, sr_bin)[0]
 
                     binname = "%s_%s_%s_%s_%s" %(lt_bin,ht_bin,nb_bin,nj_bin,sr_bin)
                     cutDictSRf9[binname] = [("base",lt_bin,lt_cut),("base",ht_bin,ht_cut),("base",nb_bin,nb_cut),("base",nj_bin,nj_cut),("base",sr_bin,sr_cut)]
 
                 for cr_bin in ['CR']:
-                    cr_cut = binsCR[cr_bin][0]
+                    # use isSR var
+                    #cr_cut = binsCR[cr_bin][0]
+                    # use varying dPhi
+                    cr_cut = getSRcut(nj_bin, lt_bin, cr_bin)[0]
 
                     binname = "%s_%s_%s_%s_%s" %(lt_bin,ht_bin,nb_bin,nj_bin,cr_bin)
                     cutDictCRf9[binname] = [("base",lt_bin,lt_cut),("base",ht_bin,ht_cut),("base",nb_bin,nb_cut),("base",nj_bin,nj_cut),("base",cr_bin,cr_cut)]
