@@ -21,11 +21,6 @@ def scaleToHist(hists, hRef):
     hTotal = yp.getTotal(mcHists)
 
     for hist in hists:
-        '''
-        for ibin in xrange(hist.GetNbinsX()):
-            yd = hist.GetBinContent(ibin)
-            err = hist.GetBinError(ibin)
-        '''
         hist.Divide(hTotal)
         hist.Multiply(hRef)
 
@@ -205,26 +200,29 @@ if __name__ == "__main__":
     for i in xrange(1,hPredUnc.GetNbinsX()+1):
         hPredUnc.SetBinError(i,hDataPred.GetBinError(i)/hDataPred.GetBinContent(i))
 
-
     #### Drawing
     logY = True
-    logY = False
+    #logY = False
     cname = "Data_2p24fb_"+mask
+    hists = [mcStack,hUncert,hDataPois]
+    ratios = [hPredUnc,ratioPois]
+
     #canv = yp.plotHists("SR_MB_Prediction",[mcStack,hTotal,hDataPred,hDataPois],[hPredUnc,ratioPois],'TM', 1200, 600, logY = logY)
-    canv = yp.plotHists("SR_MB_Prediction",[mcStack,hUncert,hDataPois],[hPredUnc,ratioPois],'TM', 1200, 600, logY = logY)
+    canv = yp.plotHists("SR_MB_Prediction",hists,ratios,'TM', 1200, 600, logY = logY)
 
     canv.SetName(cname + canv.GetName())
 
     if logY: canv.SetName(canv.GetName() + "_log")
     canvs.append(canv)
 
-    if not yp._batchMode: raw_input("Enter any key to exit")
+    if not yp._batchMode:
+        if "q" in raw_input("Enter any key to exit (or 'q' to stop): "): exit(0)
 
     # Save canvases
     exts = [".pdf",".png",".root"]
     #exts = [".pdf"]
 
-    odir = "BinPlots/Data/JECv7/unbld_poisErr/allSF_noPU/Method1A/"
+    odir = "BinPlots/Data/JECv7/fixSR_poisErr/allSF_noPU/Method1A/"
     #odir = "BinPlots/Syst/btag/hadronFlavour/allSF_noPU/Method1B/"
     if not os.path.isdir(odir): os.makedirs(odir)
 
