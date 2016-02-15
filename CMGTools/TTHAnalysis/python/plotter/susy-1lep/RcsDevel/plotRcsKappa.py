@@ -8,7 +8,7 @@ yp._alpha = 0.35
 
 if __name__ == "__main__":
 
-    yp.CMS_lumi.lumi_13TeV = str(2.1) + " fb^{-1}"
+    yp.CMS_lumi.lumi_13TeV = str(2.2) + " fb^{-1}"
     yp.CMS_lumi.extraText = "Simulation"
 
     ## remove '-b' option
@@ -25,8 +25,10 @@ if __name__ == "__main__":
 
     #BinMask LTX_HTX_NBX_NJX for canvas names
 
-    nBs = ["NB"]#"NB1","NB2","NB3"]
-    nJs = ["NJ"]#"NJ68","NJ9i"]
+    #nBs = ["NB"]#"NB1","NB2","NB3"]
+    nBs = ["NB1","NB2","NB3"]
+    #nJs = ["NJ"]#"NJ68","NJ9i"]
+    nJs = ["NJ68","NJ9i"]
 
     basename = os.path.basename(pattern)
     print basename
@@ -69,7 +71,8 @@ if __name__ == "__main__":
                     yp.prepKappaHist(hKappa)
                     yp.prepRatio(hKappa)
 
-                    canv = yp.plotHists(samp+"_RcsKappa_",[hRcsMB,hRcsSB],hKappa, legPos = "TM", width = 1200, height = 600)
+                    #canv = yp.plotHists(samp+"_RcsKappa_",[hRcsMB,hRcsSB],hKappa, legPos = "TM", width = 1200, height = 600)
+                    canv = yp.plotHists(samp+"_RcsKappa_",[hRcsMB,hRcsSB],hKappa, legPos = "TM")
                     canvs.append(canv)
 
                     if not yp._batchMode: raw_input("Enter any key to exit")

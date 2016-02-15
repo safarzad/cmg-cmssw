@@ -71,14 +71,10 @@ if __name__ == "__main__":
     print [name for name in yds.samples if ("syst" in name and "mGo1200_mLSP800" in name)]
 
     ## Sys types
-#    systs = ["btagHF","btagLF","Wxsec","PU"]#,"topPt"]#,"JEC"]
-#    systs = ["btagHF","btagLF","Wxsec","PU","topPt"]#,"JEC"]
-#    systs = ["btagHF","Wxsec","topPt","PU","DLSlope","DLConst"]#,"JEC"]
-#    systs = ["JEC"]
-#    systs = ["DLConst","DLSlope"]
 #    systs = ["btagHF","btagLF"]
 #    systs = ["PU","btagLF","btagHF","ISR","JEC"]
     systs = ["Scale-Env","PU","btagLF","btagHF","ISR","JEC"]
+#    systs = ["btagLF","btagHF","ISR","JEC","PU","Scale-Env"]
 #    systs = ["Scale-Env"]
 #    systs = ["ISR"]
 #    systs = ["btagHF","btagLF","PU"]

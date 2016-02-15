@@ -40,6 +40,8 @@ def doLegend(pos = "TM",nEntr = None):
         else:
             #leg = TLegend(0.4,0.5,0.6,0.85)
             leg = TLegend(0.3,0.5,0.45,0.85)
+    elif pos == "TMR":
+        leg = TLegend(0.35,0.5,0.55,0.85) # Top Middle Right
     elif pos == "Long":
         #leg = TLegend(0.2,0.75,0.85,0.85) # Top
         leg = TLegend(0.2,0.35,0.85,0.45) # Bottom
@@ -100,6 +102,8 @@ def getUniqLabels(labels):
         for i in range(len(labs)):
             binCnts[i].add(labs[i])
 
+    #print binCnts
+
     # Make labels with short names
     newLabs = {}
     for lab in labels:
@@ -124,7 +128,6 @@ def getCleanLabel(binLabel):
     #binLabel = binLabel.replace("_NJ68","")
     #binLabel = binLabel.replace("_NJ9i","")
     #binLabel = binLabel.replace("_",",")
-
 
     return binLabel
 
@@ -162,7 +165,7 @@ def makeSampHisto(yds, samp, cat, hname = "", ind = 0):
         label = ydict[bin].label if ydict[bin].label != "" else bin
         labels.append(getCleanLabel(label))
 
-    ulabs = getUniqLabels(labels)
+    #ulabs = getUniqLabels(labels)
 
     # fill histo
     for ibin,bin in enumerate(binList):
@@ -173,7 +176,7 @@ def makeSampHisto(yds, samp, cat, hname = "", ind = 0):
 
         binLabel = getCleanLabel(binLabel)
 
-       # if binLabel in ulabs: binLabel = ulabs[binLabel]
+        #if binLabel in ulabs: binLabel = ulabs[binLabel]
 
         newLabel = "#splitline"
 
@@ -585,9 +588,10 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
     ymax = max([h.GetMaximum() for h in histList])
 #    ymin = min([h.GetMinimum() for h in histList]);
 
+    extHistList = [] + histList
     for h in histList:
         if h.ClassName() == "THStack":
-            extHistList = histList + [h for h in h.GetHists()]
+            extHistList += [h for h in h.GetHists()]
 
     ymin = min([h.GetMinimum() for h in extHistList]);
 
@@ -610,16 +614,17 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
         dummy.Reset()
         # draw dymmy first
         _histStore[dummy.GetName()] = dummy
-        histList = [dummy] + histList
+        #histList = [dummy] + histList
+        histList.insert(0,dummy)
 
     for i,hist in enumerate(histList):
 
         if not hist.ClassName() == 'THStack':
 
             hist.GetYaxis().SetTitleSize(0.05)
-            hist.GetYaxis().SetTitleOffset(0.6)
+            hist.GetYaxis().SetTitleOffset(0.8)
 
-            if ratio == None: hist.GetYaxis().SetLabelSize(0.4)
+            if ratio == None: hist.GetYaxis().SetLabelSize(0.04)
             else: hist.GetYaxis().SetLabelSize(0.05)
 
         # range
@@ -702,19 +707,27 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
     raxis.Draw();
     '''
 
-    # Add ticks
-    p1.SetTicks()
-    p1.Update()
-
-    if logY: p1.SetLogy()
-
     # draw CMS lumi
     if ratio != None:
         CMS_lumi.CMS_lumi(p1, 4, iPos)
         p2.SetTicks()
         p2.Update()
+
+        # Add ticks
+        p1.SetTicks()
+        p1.Update()
+
+        if logY: p1.SetLogy()
+
     else:
         CMS_lumi.CMS_lumi(canv, 4, iPos)
+
+        # Add ticks
+        canv.SetTicks()
+        canv.Update()
+
+        if logY: canv.SetLogy()
+
 
     #gPad.RedrawAxis()
 
