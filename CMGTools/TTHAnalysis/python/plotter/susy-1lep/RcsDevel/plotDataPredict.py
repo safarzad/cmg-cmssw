@@ -13,7 +13,7 @@ doPoisErr = True
 
 def scaleToHist(hists, hRef):
 
-    hTotal = yp.getTotal(mcHists)
+    hTotal = yp.getTotal(hists)
 
     for hist in hists:
         hist.Divide(hTotal)

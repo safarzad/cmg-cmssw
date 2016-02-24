@@ -63,6 +63,8 @@ if __name__ == "__main__":
         #jecPath = "Yields/systs/JEC/MC/allSF_noPU/meth1A/merged/"; paths.append(jecPath)
         jecPath = "Yields/systs/JEC/MC/allSF_noPU_fixLT/meth1A/merged/"; paths.append(jecPath)
         btagPath = "Yields/systs/btag/hadFlavour/fixXsec/allSF_noPU/meth1A/merged/"; paths.append(btagPath)
+        # lep SF unct < 1%
+        #paths = ["Yields/systs/lepSF/test/allSF_noPU/merged_main/"]
 
         for path in paths:
             yds.addFromFiles(path+"/"+basename,("lep","sele"))
@@ -91,6 +93,7 @@ if __name__ == "__main__":
 #    systs = ["Wpol","Wxsec"]
 #    systs = ["Wpol","Wxsec","PU","JEC","btagHF","btagLF","topPt","DLConst","DLSlope","JER","JERYesNo"]
     systs = ["TTVxsec","Wpol","Wxsec","PU","JEC","btagHF","btagLF","topPt","DLConst","DLSlope"]
+#    systs = ["lepSF"]
 
     systNames = {
         "btagLF" : "b-mistag (light)",
@@ -174,7 +177,8 @@ if __name__ == "__main__":
     #exts = [".pdf"]
 
     #odir = "BinPlots/Syst/Combine/test/allSF_noPU_Wpol/Method1A/"
-    odir = "BinPlots/Syst/Combine/allSF_noPU_LTfix/Method1A/"
+    #odir = "BinPlots/Syst/Combine/allSF_noPU_LTfix/Method1A/"
+    odir = "BinPlots/Syst/lepSF/allSF_noPU/"
     if not os.path.isdir(odir): os.makedirs(odir)
 
     ## Save hists

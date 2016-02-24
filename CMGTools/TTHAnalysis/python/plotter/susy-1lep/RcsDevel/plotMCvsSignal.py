@@ -72,16 +72,12 @@ if __name__ == "__main__":
     #mcSamps = ['TTdiLep','TTsemiLep','WJets','TTV','SingleT','DY']
     mcSamps = ['DY','TTV','SingleT','WJets','TTdiLep','TTsemiLep']
 
-    #mass = "mGo1500_mLSP100"; massName = "(1500,100)"
-    mass = "mGo1200_mLSP800"; massName = "(1200,800)"
-    signame = "T1tttt_Scan_" + mass
-
     cat = "SR_MB"
 
     #logY = True
     logY = False
 
-    print "Making plot for", mass, cat
+    print "Making plot for", cat
 
     # MC samps
     samps = [(samp,cat) for samp in mcSamps]
@@ -89,21 +85,40 @@ if __name__ == "__main__":
     hMC = yp.getStack(mcHists)
     hTotal = yp.getTotal(mcHists)
 
-    # Sig
-    yp.colorDict[signame+"_Sig_"+cat] = yp.kMagenta
-    hSig = yp.makeSampHisto(ydsSig,signame,cat,signame+"_Sig_"+cat)
-    #hSig.SetTitle("T1tttt_"+mass)
-    hSig.SetTitle("T1tttt "+massName)
+    # Signals
+
+    sighists = []
+
+    masses = []
+    mass = "mGo1500_mLSP100"; massName = "(1500,100)"
+    masses.append((mass,massName,yp.kMagenta))
+    mass = "mGo1200_mLSP800"; massName = "(1200,800)"
+    masses.append((mass,massName,yp.kBlack))
+
+
+    for (mass, massName,col) in masses:
+
+        signame = "T1tttt_Scan_" + mass
+
+        yp.colorDict[signame+"_Sig_"+cat] = col
+        hSig = yp.makeSampHisto(ydsSig,signame,cat,signame+"_Sig_"+cat)
+        #hSig.SetTitle("T1tttt_"+mass)
+        hSig.SetTitle("T1tttt "+massName)
+
+        sighists.append(hSig)
+
+    #print sighists
 
     ratio = yp.getRatio(hSig,hTotal)
     ratio.SetName("SigOvMC")
     #ratio.GetYaxis().SetRangeUser(0.75,1.25)
 
-    hists += [hMC,hSig,hTotal,ratio]
+    hists += [hMC,hTotal,ratio] + sighists
     #canv = yp.plotHists(cat,[hMC,hSig],ratio,"TM", 1200, 600, logY = True)
-    canv = yp.plotHists(cat,[hMC,hSig],None,"TM", 1200, 600, logY = True)
+    canv = yp.plotHists(cat,[hMC]+sighists,None,"TM", 1200, 600, logY = True)
+    yp.gPad.RedrawAxis()
 
-    cname = "MCvs" + signame + "_" + cat
+    cname = "MC_vs_T1tttt_" + cat
     canv.SetName(cname)
 
     canvs.append(canv)
@@ -116,7 +131,7 @@ if __name__ == "__main__":
     exts = [".pdf",".png",".root"]
     #exts = [".pdf"]
 
-    odir = "BinPlots/MCvsSig/allSF_noPU/test/" + cat + "/"
+    odir = "BinPlots/MCvsSig/allSF_noPU/" + cat + "/"
     if not os.path.isdir(odir): os.makedirs(odir)
 
     for canv in canvs:

@@ -2,6 +2,8 @@ import sys,os
 
 import makeYieldPlots as yp
 
+yp.gStyle.SetPadTopMargin(0.1)
+
 yp._batchMode = False
 yp._alpha = 0.8
 
@@ -60,6 +62,7 @@ if __name__ == "__main__":
     ## Store dict in pickle file
     storeDict = True
     pckname = "pickles/bkgSysts"+mask+".pck"
+    pcksig = "pickles/sigCentral"+mask+".pckz"
 
     if storeDict == True and os.path.exists(pckname):
 
@@ -67,8 +70,7 @@ if __name__ == "__main__":
 
         import cPickle as pickle
         ydsSyst = pickle.load( open( pckname, "rb" ) )
-        ydsSyst.showStats()
-
+        #ydsSyst.showStats()
     else:
 
         print "#Reading yields from files!"
@@ -100,6 +102,27 @@ if __name__ == "__main__":
         import cPickle as pickle
         pickle.dump( ydsSyst, open( pckname, "wb" ) )
 
+    ## LOAD SIGNAL
+
+    if storeDict == True and os.path.exists(pcksig):
+
+        print "#Loading saved yields from pickle!"
+
+        import cPickle as pickle
+        import gzip
+        ydsSig = pickle.load( gzip.open( pcksig, "rb" ) )
+
+    else:
+
+        ydsSig = yp.YieldStore("Signal")
+        pathSig = "Yields/signal/fixSR/lumi2p25fb/allSF_noPU/mainNJ/merged/"
+        ydsSig.addFromFiles(pathSig+basename,("lep","sele"))
+
+        print "#Saving yields to pickle:", pcksig
+
+        import gzip
+        pickle.dump( ydsSig, gzip.open( pcksig, "wb" ) )
+
     # Sys types
 #    systs = ["btagHF","Wxsec","topPt","PU","DLSlope","DLConst"]#,"JEC"]
 #    systs = ["Wxsec","PU","JEC","btagHF","btagLF","topPt"]
@@ -120,7 +143,6 @@ if __name__ == "__main__":
     systHists = yp.makeSampHists(ydsSyst,systSamps)
     hMCSysts = yp.getSquaredSum(systHists)
 
-
     ###########################
     ## Make Prediction plots ##
     ###########################
@@ -128,7 +150,7 @@ if __name__ == "__main__":
     ## Create Yield Storage
     yds = yp.YieldStore("lepYields")
     yds.addFromFiles(pattern,("lep","sele"))
-    yds.showStats()
+    #yds.showStats()
 
     mcSamps = ['DY','TTV','SingleT','WJets','TT']
     #mcSamps = ['EWK']
@@ -171,8 +193,8 @@ if __name__ == "__main__":
     #hDataPred = hMCpred
 
     #hData.SetBinErrorOption(TH1.kPoisson)
-    from CMGTools.TTHAnalysis.plotter.mcPlots import getDataPoissonErrors
-    hDataPois = getDataPoissonErrors(hData,True,True)
+    #from CMGTools.TTHAnalysis.plotter.mcPlots import getDataPoissonErrors
+    hDataPois = yp.getDataPoissonErrors(hData,True,False)
     hDataPois.SetName("DataPois")
     hDataPois.SetTitle("Data")
     #hDataPois = hData.Clone()
@@ -190,8 +212,9 @@ if __name__ == "__main__":
     hPredUnc.SetName("PredictionUncertainty")
     hPredUnc.SetLineColor(1)
     hPredUnc.SetFillColorAlpha(col,yp._alpha)
-    #hPredUnc.SetFillStyle(3244)
-    hPredUnc.SetFillStyle(1001)
+    #hPredUnc.SetFillColorAlpha(col,0.5)
+    hPredUnc.SetFillStyle(3244)
+    #hPredUnc.SetFillStyle(1001)
     hPredUnc.SetMarkerColor(col)
     hPredUnc.SetMarkerStyle(0)
     hPredUnc.GetYaxis().SetTitle(ratio.GetYaxis().GetTitle())
@@ -201,15 +224,40 @@ if __name__ == "__main__":
     for i in xrange(1,hPredUnc.GetNbinsX()+1):
         hPredUnc.SetBinError(i,hDataPred.GetBinError(i)/hDataPred.GetBinContent(i))
 
+    ### Signal
+    sighists = []
+    sigcat = "SR_MB"
+
+    masses = []
+    mass = "mGo1200_mLSP800"; massName = "(1200,800)"
+    masses.append((mass,massName,yp.kYellow-6,1))
+    mass = "mGo1500_mLSP100"; massName = "(1500,100)"
+    masses.append((mass,massName,yp.kMagenta,1))
+
+    for (mass, massName,col,lsty) in masses:
+        signame = "T1tttt_Scan_" + mass
+
+        yp.colorDict[signame+"_SigStack_"+sigcat] = col
+        hSig = yp.makeSampHisto(ydsSig,signame,sigcat,signame+"_SigStack_"+sigcat)
+        hSig.SetTitle("T1tttt "+massName)
+        hSig.SetFillStyle(0)
+        hSig.SetLineWidth(2)
+        hSig.SetLineStyle(lsty)
+
+        # put signal on top of prediction
+        hSig.Add(hDataPred)
+
+        sighists.append(hSig)
+
     #### Drawing
     logY = True
     #logY = False
     cname = "Data_2p24fb_"+mask
-    hists = [mcStack,hUncert,hDataPois]
+    hists = [mcStack,hUncert] + sighists + [hDataPois]
     ratios = [hPredUnc,ratioPois]
 
     #canv = yp.plotHists("SR_MB_Prediction",[mcStack,hTotal,hDataPred,hDataPois],[hPredUnc,ratioPois],'TM', 1200, 600, logY = logY)
-    canv = yp.plotHists("SR_MB_Prediction",hists,ratios,'TM', 1200, 600, logY = logY)
+    canv = yp.plotHists("SR_MB_Prediction",hists,ratios,'TRC', 1200, 600, logY = logY)
 
     canv.SetName(cname + canv.GetName())
 
@@ -223,7 +271,7 @@ if __name__ == "__main__":
     exts = [".pdf",".png",".root"]
     #exts = [".pdf"]
 
-    odir = "BinPlots/Data/JECv7/fixSR_poisErr/allSF_noPU/Method1A/"
+    odir = "BinPlots/Data/JECv7/vsSig/allSF_noPU/"
     #odir = "BinPlots/Syst/btag/hadronFlavour/allSF_noPU/Method1B/"
     if not os.path.isdir(odir): os.makedirs(odir)
 
