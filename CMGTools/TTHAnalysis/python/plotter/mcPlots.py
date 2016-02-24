@@ -734,7 +734,6 @@ class PlotMaker:
                         else:
                             plot.SetMarkerStyle(0)
 
-
                 # to get fraction
                 if self._options.fraction:
                     for plot in stack.GetHists():
@@ -742,7 +741,9 @@ class PlotMaker:
                         plot.SetLineColor(plot.GetFillColor())
                     total.Divide(total)
                     total.SetMaximum(1)
-
+                if stack.GetNhists() == 0:
+                    print "ERROR: for %s, all histograms are empty\n " % pspec.name
+                    continue
                 # define aspect ratio
                 plotformat = (1200,600) if self._options.wideplot else (600,600)
                 sf = 20./plotformat[0]
