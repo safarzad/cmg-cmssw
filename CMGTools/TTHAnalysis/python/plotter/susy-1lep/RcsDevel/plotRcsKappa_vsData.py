@@ -53,46 +53,53 @@ if __name__ == "__main__":
 
                 for samp in samps:
 
-                    '''
                     # RCS MB
                     yp.colorDict[samp+"_Rcs_MB"] = yp.kBlue
                     hRcsMB = yp.makeSampHisto(yds,samp,"Rcs_MB",samp+"_Rcs_MB")
-                    hRcsMB.SetTitle("R_{CS} (MB)")
-                    '''
+                    #hRcsMB.SetTitle("R_{CS} (MB)")
+                    hRcsMB.SetTitle("R_{CS}^{MC}(n_{b-tag}, n_{jet}^{SR}, EWK)")
+
                     # RCS SB
                     yp.colorDict[samp+"_Rcs_SB"] = yp.kRed
                     hRcsSB = yp.makeSampHisto(yds,samp,"Rcs_SB",samp+"_Rcs_SB")
-                    hRcsSB.SetTitle("R_{CS} (SB)")
-
-                    yp.colorDict["d_QCDsubtr_Rcs_SB"] = yp.kBlue
-                    hDataSB = yp.makeSampHisto(yds,"data_QCDsubtr","Rcs_SB","d_QCDsubtr_Rcs_SB")
-                    hDataSB.SetTitle("R_{CS} (Data SB)")
-
-                    '''
-                    # RCS SB
-                    yp.colorDict[samp+"_Rcs_SB"] = yp.kRed
-                    hRcsSB = yp.makeSampHisto(yds,samp,"Rcs_SB",samp+"_Rcs_SB")
-                    hRcsSB.SetTitle("R_{CS} (SB)")
+                    #hRcsSB.SetTitle("R_{CS} (SB)")
+                    hRcsSB.SetTitle("R_{CS}^{MC}(n_{b-tag}, n_{jet}#in [4,5], EWK)")
 
                     # Kappa
-                    yp.colorDict[samp+"_Kappa"] = yp.kBlack
+                    yp.colorDict[samp+"_Kappa"] = yp.kRed
                     hKappa = yp.makeSampHisto(yds,samp,"Kappa",samp+"_Kappa")
-                    hKappa.SetTitle("#kappa")
+                    hKappa.SetTitle("#kappa_{MC}")
 
                     yp.prepKappaHist(hKappa)
                     yp.prepRatio(hKappa)
-                    '''
 
+                    hRcsMB.GetYaxis().SetRangeUser(0,0.2)
+
+                    ## DATA
+                    yp.colorDict["data_QCDsubtr_Rcs_SB"] = yp.kBlack
+                    hDataSB = yp.makeSampHisto(yds,"data_QCDsubtr","Rcs_SB","data_QCDsubtr_Rcs_SB")
+                    hDataSB.SetTitle("R_{CS} (Data SB)")
+
+                    canv = yp.plotHists(samp+"_RcsKappa_",[hRcsMB,hRcsSB,hDataSB],hKappa, legPos = "TRC", width = 1200, height = 600)
                     #canv = yp.plotHists(samp+"_RcsKappa_",[hRcsMB,hRcsSB],hKappa, legPos = "TM", width = 1200, height = 600)
                     #canv = yp.plotHists(samp+"_RcsKappa_",[hRcsMB,hRcsSB],hKappa, legPos = "TM")
-                    canv = yp.plotHists(samp+"_RcsKappa_",[hDataSB, hRcsSB],None, legPos = "TMR", width = 1200, height = 600)
+                    #canv = yp.plotHists(samp+"_RcsKappa_",[hDataSB, hRcsSB],None, legPos = "TMR", width = 1200, height = 600)
+
+                    hRcsMB.GetYaxis().SetTitle("R_{CS}")
+                    hRcsMB.GetYaxis().SetTitleSize(0.07)
+                    hRcsMB.GetYaxis().SetTitleOffset(0.5)
+
+                    hKappa.GetYaxis().SetTitleSize(0.2)
+                    hKappa.GetYaxis().SetTitleOffset(0.15)
+                    hKappa.GetYaxis().SetTitle("#kappa_{MC}")
+
                     canvs.append(canv)
 
                     if not yp._batchMode: raw_input("Enter any key to exit")
 
                     exts = [".pdf",".png",".root"]
 
-                    odir = "BinPlots/RcsKappa/MCvsData/"+mask+"/"
+                    odir = "BinPlots/RcsKappa/MCvsData/all/"+mask+"/"
                     if not os.path.exists(odir): os.makedirs(odir)
 
                     for ext in exts:

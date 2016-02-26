@@ -173,7 +173,8 @@ if __name__ == "__main__":
 
     # DATA
     hDataPred = yp.makeSampHisto(yds,"data_QCDsubtr",cat,"Data_prediction"); hDataPred.SetTitle("Prediction")
-    hData = yp.makeSampHisto(yds,"data_QCDsubtr","SR_MB","Data"); hData.SetTitle("Data")
+    #hDataPred = yp.makeSampHisto(yds,"data",cat,"Data_prediction"); hDataPred.SetTitle("Prediction")
+    hData = yp.makeSampHisto(yds,"data","SR_MB","Data"); hData.SetTitle("Data")
 
     ## Append Systematics to prediction
     print "Appending syst. unc. to prediction and total MC"
@@ -252,7 +253,7 @@ if __name__ == "__main__":
     #### Drawing
     logY = True
     #logY = False
-    cname = "Data_2p24fb_"+mask
+    cname = "Data_2p2fb_"+mask
     hists = [mcStack,hUncert] + sighists + [hDataPois]
     ratios = [hPredUnc,ratioPois]
 
