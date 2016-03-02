@@ -1,7 +1,7 @@
 #TT       : TTJets_DiLepton         : xsec*lepSF*btagSF*TopPtWeight : lheHTIncoming <= 600; FillColor=ROOT.kBlue, Label="t\#bar{t} dilept"
 #TT  	 : TTJets_SingleLepton     : 2*xsec*lepSF*btagSF*TopPtWeight : lheHTIncoming <= 600; FillColor=ROOT.kBlue, Label="t\#bar{t} semilept"
 #TT 	 : TTJets_LO 		   : xsec*lepSF*btagSF*TopPtWeight : ngenTau+ngenLep == 0 && lheHTIncoming <= 600 && HT < 1250; FillColor=ROOT.kBlue, Label="t\#bar{t}"
-#TT 	 : TTJets_LO 		   : xsec*lepSF*btagSF*TopPtWeight : lheHTIncoming <= 600; FillColor=ROOT.kBlue, Label="t\#bar{t}"
+TT 	 : TTJets_LO 		   : xsec*lepSF*btagSF*TopPtWeight : lheHTIncoming <= 600; FillColor=ROOT.kBlue, Label="t\#bar{t}"
 TT 	 : TTJets_LO_HT600to800    : xsec*lepSF*btagSF*TopPtWeight ; FillColor=ROOT.kBlue, Label="t\#bar{t}"
 TT 	 : TTJets_LO_HT800to1200   : xsec*lepSF*btagSF*TopPtWeight ; FillColor=ROOT.kBlue, Label="t\#bar{t}"
 TT 	 : TTJets_LO_HT1200to2500  : xsec*lepSF*btagSF*TopPtWeight ; FillColor=ROOT.kBlue, Label="t\#bar{t}"
