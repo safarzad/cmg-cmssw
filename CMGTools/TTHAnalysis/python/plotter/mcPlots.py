@@ -581,8 +581,8 @@ def doLegend(pmap,mca,corner="TR",textSize=0.035,cutoff=1e-2,cutoffSignals=True,
         leg.SetShadowColor(0)
         if not legBorder:
             leg.SetLineColor(0)
-        #leg.SetTextFont(42)
-        leg.SetTextFont(62)
+        leg.SetTextFont(42)
+        #leg.SetTextFont(62)
         leg.SetTextSize(textSize)
         if 'data' in pmap:
             leg.AddEntry(pmap['data'], mca.getProcessOption('data','Label','Data'), 'LPE')
@@ -848,6 +848,7 @@ class PlotMaker:
                 if options.showMCError:
                     totalError = doShadedUncertainty(totalSyst)
                 is2D = total.InheritsFrom("TH2")
+                '''
                 if 'data' in pmap:
                     if options.poisson and not is2D:
                         pdata = getDataPoissonErrors(pmap['data'], False, True)
@@ -864,6 +865,7 @@ class PlotMaker:
                         xblind.append(blindbox) # so it doesn't get deleted
                     if options.doStatTests:
                         doStatTests(totalSyst, pmap['data'], options.doStatTests, legendCorner=pspec.getOption('Legend','TR'))
+                '''
                 if pspec.hasOption('YMin') and pspec.hasOption('YMax'):
                     total.GetYaxis().SetRangeUser(pspec.getOption('YMin',1.0), pspec.getOption('YMax',1.0))
                 #legendCutoff = pspec.getOption('LegendCutoff', 1e-5 if c1.GetLogy() else 1e-2)
@@ -911,14 +913,33 @@ class PlotMaker:
                                 p1.SetFillColor(ROOT.kYellow-10)
                                 if p2: p2.SetFillColor(ROOT.kYellow-10)
                                 break
+
+                if 'data' in pmap:
+                    if options.poisson and not is2D:
+                        pdata = getDataPoissonErrors(pmap['data'], False, True)
+                        pdata.Draw("P E1 SAME")
+                        pmap['data'].poissonGraph = pdata ## attach it so it doesn't get deleted
+                    else:
+                        pmap['data'].Draw("E SAME")
+                    reMax(total,pmap['data'],islog)
+                    if xblind[0] < xblind[1]:
+                        blindbox = ROOT.TBox(xblind[0],total.GetYaxis().GetXmin(),xblind[1],total.GetMaximum())
+                        blindbox.SetFillColor(ROOT.kBlue+3)
+                        blindbox.SetFillStyle(3944)
+                        blindbox.Draw()
+                        xblind.append(blindbox) # so it doesn't get deleted
+                    if options.doStatTests:
+                        doStatTests(totalSyst, pmap['data'], options.doStatTests, legendCorner=pspec.getOption('Legend','TR'))
+
+
                 if makeCanvas: dir.WriteTObject(c1)
                 rdata,rnorm,rnorm2,rline = (None,None,None,None)
                 if doRatio:
                     p2.cd();
                     rdata,rnorm,rnorm2,rline = doRatioHists(pspec,pmap,total,totalSyst, maxRange=options.maxRatioRange, fitRatio=options.fitRatio)
                     # write ratio also to dir
-                    #rdata.SetName(stack.GetName().replace("stack","ratio"))
-                    #dir.WriteTObject(rdata)
+                    rdata.SetName(stack.GetName().replace("stack","ratio"))
+                    dir.WriteTObject(rdata)
 
                 p1.cd()
                 legendCutoff = 0
@@ -974,7 +995,7 @@ class PlotMaker:
                                         plot.Draw("CONT0Z")
                                     else:
                                         plot.SetContour(100)
-                                        plot.Draw(pspec.getOption("PlotMode","COLZ TEXT45"))
+                                        plot.Draw(pspec.getOption("PlotMode","COLZ"))
                                     c1.Print("%s/%s_%s.%s" % (fdir, pspec.name, p, ext))
                                 if "data" in pmap and "TGraph" in pmap["data"].ClassName():
                                     pmap["data"].SetMarkerSize(pspec.getOption("MarkerSize",1.6))
@@ -983,7 +1004,7 @@ class PlotMaker:
                                         plot = pmap[p]
                                         c1.SetRightMargin(0.20)
                                         plot.SetContour(100)
-                                        plot.Draw(pspec.getOption("PlotMode","COLZ TEXT45"))
+                                        plot.Draw(pspec.getOption("PlotMode","COLZ"))
                                         pmap["data"].Draw("P SAME")
                                         c1.Print("%s/%s_data_%s.%s" % (fdir, pspec.name, p, ext))
                             else:
