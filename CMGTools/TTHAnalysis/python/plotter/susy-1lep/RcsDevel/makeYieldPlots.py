@@ -18,8 +18,9 @@ import CMS_lumi
 
 CMS_lumi.writeExtraText = 1
 CMS_lumi.extraText = "Preliminary"
-iPos = 11
-if( iPos==0 ): CMS_lumi.relPosX = 0.2
+#iPos = 11
+iPos = 0
+if( iPos==0 ): CMS_lumi.relPosX = 0.05
 
 
 ## Global vars
@@ -85,11 +86,15 @@ def doLegend(pos = "TM",nEntr = None):
         leg = TLegend(0.3,0.5,0.55,0.85)
     elif pos == "TRC":
         #leg = TLegend(0.65,0.55,0.925,0.9)
-        leg = TLegend(1-gStyle.GetPadRightMargin()-0.25,0.55,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
+        #leg = TLegend(1-gStyle.GetPadRightMargin()-0.25,0.55,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
+        leg = TLegend(1-gStyle.GetPadRightMargin()-0.35,0.55,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
+        #leg = TLegend(1-gStyle.GetPadRightMargin()-0.35,0.65,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
+        #leg = TLegend(1-gStyle.GetPadRightMargin()-0.4,0.65,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
 
     leg.SetBorderSize(1)
     leg.SetTextFont(62)
-    leg.SetTextSize(0.03321678)
+    #leg.SetTextSize(0.03321678)
+    leg.SetTextSize(0.05)
 
     if pos != "TRC":
         leg.SetLineColor(0)
@@ -184,9 +189,19 @@ def getCleanLabel(binLabel):
     binLabel = binLabel.replace("f9","")
 
     binLabel = binLabel.replace("LTi","")
+
+    # NB
     #binLabel = binLabel.replace("NB0","")
     #binLabel = binLabel.replace("NB2i","")
+    '''
+    binLabel = binLabel.replace("_NB1_","_1b_")
+    binLabel = binLabel.replace("_NB1i_","_#geq1b_")
+    binLabel = binLabel.replace("_NB2_","_2b_")
+    binLabel = binLabel.replace("_NB2i_","_#geq2b_")
+    binLabel = binLabel.replace("_NB3i_","_#geq3b_")
+    '''
 
+    # NJ
     #binLabel = binLabel.replace("_NJ68","")
     binLabel = binLabel.replace("_NJ68","_6-8j")
     binLabel = binLabel.replace("_NJ9i","_#geq9j")
@@ -483,22 +498,27 @@ def getSquaredSum(histList):
     sqHist.SetMarkerSize(2)
     sqHist.SetMarkerColor(kBlack)
     sqHist.SetTitle("sqSum")
-    sqHist.SetName("sqSum")
+    #sqHist.SetName("sqSum")
     return sqHist
 
 def getHistWithError(hCentral, hSyst, new = True):
     if new:
-        histWithError = hCentral.Clone()
+        histWithError = hCentral.Clone(hCentral.GetName() + "wErr")
         histWithError.SetFillColor(kBlue)
         histWithError.SetFillStyle(3002)
     else:
         histWithError = hCentral
 
     for bin in range(1,hCentral.GetNbinsX()+1):
+
+        #print bin, histWithError.GetBinContent(bin),histWithError.GetBinError(bin), hSyst.GetBinContent(bin), "\t",
+
         sys = hCentral.GetBinContent(bin)*hSyst.GetBinContent(bin)
         #err = math.sqrt(hCentral.GetBinError(bin)*hCentral.GetBinError(bin) + sys*sys)
         err = math.hypot(hCentral.GetBinError(bin),sys)
         histWithError.SetBinError(bin, err)
+
+        #print sys, histWithError.GetBinError(bin)
 
     return  histWithError
 
@@ -561,6 +581,8 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
     canv = TCanvas(cname,cname,width,height)
     #leg = doLegend(len(histList)+1)
     leg = doLegend(legPos)
+    leg2 = doLegend("TM")
+
     if legPos == "Long":
         nh = 1
         for hist in histList:
@@ -569,6 +591,8 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
             else:
                 nh += 1
         leg.SetNColumns(nh)
+
+    leg.SetNColumns(nCols)
 
     if legPos == "Wide":
         leg.SetNColumns(2)
@@ -579,7 +603,7 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
     SetOwnership(leg, 0)
 
     head = getCatLabel(cname)
-    leg.SetHeader(head)
+    #leg.SetHeader(head)
 
     if ratio != None:
 
@@ -605,6 +629,8 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
 
         if "Uncert" in ratio.GetName():
             plotOpt = "e2"
+        elif "appa" in ratio.GetName():
+            plotOpt = "e1"
         else:
             plotOpt = "pe1"
 
@@ -624,6 +650,7 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
         else: line = None #TLine(0,0,hRatio.GetNbinsX(),0)
 
         if line != None:
+            line.SetLineColor(kGray)
             line.SetLineWidth(1)
             line.Draw()
             SetOwnership(line,0)
@@ -645,13 +672,17 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
                 line.Draw("same")
                 _lines.append(line)
 
+        #redraw ratio on top of lines
+        hRatio.Draw("same"+plotOpt)
+
+
         if multRatio:
             for rat in ratios[1:]:
                 #rat.Draw(plotOpt+"same")
                 if "TGraph" in rat.ClassName():
                     rat.Draw("pe1same")
                 else:
-                    rat.Draw("pe1same")
+                    rat.Draw("pe2same")
 
         p1.cd();
     else:
@@ -673,7 +704,8 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
         if ymax < 1.01 and ymax >= 1: ymax == 1; ymin = 0 # for fractions
         else: ymax *= 1.5; ymin *= 0.5; ymin = max(0,ymin)
     else:
-        ymax *= 100; ymin = max(0.05,0.5*ymin)
+        #ymax *= 100; ymin = max(0.05,0.5*ymin)
+        ymax *= 10; ymin = max(0.05,0.5*ymin)
 
     #ymin = 0
     #ymax = min(ymax, 1.5)
@@ -736,7 +768,8 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
             leg.AddEntry(hist,getSampLabel(hist.GetTitle()),"l")
         elif "sqSum" in hist.GetName():
             hist.Draw(plotOpt+"p")
-            leg.AddEntry(hist,"Sum squared uncertainties","p")
+            #leg.AddEntry(hist,"Sum squared uncertainties","p")
+            leg.AddEntry(hist,"Total","p")
         else:
             if len(histList) < 3:
                 hist.Draw(plotOpt+"pE2")
