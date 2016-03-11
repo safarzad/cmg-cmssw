@@ -207,7 +207,7 @@ def reMax(hist,hist2,islog,factorLin=1.3,factorLog=2.0):
           max2 = max(max2, (hist2.GetBinContent(b) + hist2.GetBinError(b))*(factorLog if islog else factorLin))
     if max2 > max0:
         max0 = max2;
-        if islog: hist.GetYaxis().SetRangeUser(0.05,max0)
+        if islog: hist.GetYaxis().SetRangeUser(0.2,max0)
         else:     hist.GetYaxis().SetRangeUser(0,max0)
 
 def doShadedUncertainty(h):
@@ -575,6 +575,9 @@ def doLegend(pmap,mca,corner="TR",textSize=0.035,cutoff=1e-2,cutoffSignals=True,
             (x1,y1,x2,y2) = (.90-legWidth, .33 + textSize*max(nentries-3,0), .90, .15)
         elif corner == "TL":
             (x1,y1,x2,y2) = (.2, .75 - textSize*max(nentries-3,0), .2+legWidth, .93)
+        elif corner == "PAS":
+            #(x1,y1,x2,y2) = (0.65,0.5,0.93,0.925)
+            (x1,y1,x2,y2) = (0.75,0.5,0.95,0.925)
 
         leg = ROOT.TLegend(x1,y1,x2,y2)
         leg.SetFillColor(0)
@@ -584,21 +587,43 @@ def doLegend(pmap,mca,corner="TR",textSize=0.035,cutoff=1e-2,cutoffSignals=True,
         leg.SetTextFont(42)
         #leg.SetTextFont(62)
         leg.SetTextSize(textSize)
+
         if 'data' in pmap:
             leg.AddEntry(pmap['data'], mca.getProcessOption('data','Label','Data'), 'LPE')
         total = sum([x.Integral() for x in pmap.itervalues()])
+        for (plot,label,style) in  bgEntries: leg.AddEntry(plot,label,style)
+        leg.Draw()
+
+        # signal legend
+        #leg2 = ROOT.TLegend(x1-0.3,y2-0.15,x2-0.3,y2)
+        #leg2 = ROOT.TLegend(0.3,0.825,0.6,0.925)
+        #leg2 = ROOT.TLegend(0.35,0.8,0.65,0.9)
+        leg2 = ROOT.TLegend(0.45,0.8,0.6,0.9)
+        #leg2 = ROOT.TLegend(0.7122483,0.4940711,0.9354027,0.9197324)
+
+        leg2.SetFillColor(0)
+        leg2.SetShadowColor(0)
+        if not legBorder:
+            leg2.SetLineColor(0)
+        leg2.SetTextFont(42)
+        #leg2.SetTextFont(62)
+        leg2.SetTextSize(textSize)
+
         for (plot,label,style) in sigEntries:
             if options.showIndivSigs:
                 plot.SetLineWidth(3)
                 #print plot, plot.GetLineWidth()
-                leg.AddEntry(plot,label,"l")
+                leg2.AddEntry(plot,label,"l")
             else:
-                leg.AddEntry(plot,label,style)
-        for (plot,label,style) in  bgEntries: leg.AddEntry(plot,label,style)
-        leg.Draw()
+                leg2.AddEntry(plot,label,style)
+
+        leg2.Draw()
+
         ## assign it to a global variable so it's not deleted
         global legend_;
         legend_ = leg
+        global legend2_;
+        legend2_ = leg2
         return leg
 
 class PlotMaker:
@@ -711,7 +736,7 @@ class PlotMaker:
                     for p in mca.listProcesses():
                         if p in pmap:
                             plot = pmap[p]
-                            if 'TH1' in plot.ClassName(): plot.Scale(1,"width")
+                            if 'TH1' in plot.ClassName(): plot.Scale(0.1,"width")
 
                 for p in itertools.chain(reversed(mca.listBackgrounds(allProcs=True)), reversed(mca.listSignals(allProcs=True))):
 
@@ -866,7 +891,7 @@ class PlotMaker:
                     if options.doStatTests:
                         doStatTests(totalSyst, pmap['data'], options.doStatTests, legendCorner=pspec.getOption('Legend','TR'))
                 '''
-                if pspec.hasOption('YMin') and pspec.hasOption('YMax'):
+                if pspec.hasOption('YMin') or pspec.hasOption('YMax'):
                     total.GetYaxis().SetRangeUser(pspec.getOption('YMin',1.0), pspec.getOption('YMax',1.0))
                 #legendCutoff = pspec.getOption('LegendCutoff', 1e-5 if c1.GetLogy() else 1e-2)
                 '''
@@ -944,7 +969,7 @@ class PlotMaker:
                 p1.cd()
                 legendCutoff = 0
                 if self._options.plotmode == "norm": legendCutoff = 0
-                doLegend(pmap,mca,corner=pspec.getOption('Legend','TR'),
+                doLegend(pmap,mca,corner=pspec.getOption('Legend','PAS'),
                                   cutoff=legendCutoff, mcStyle=("F" if self._options.plotmode == "stack" else "L"),
                                   cutoffSignals=not(options.showSigShape or options.showIndivSigShapes or options.showSFitShape),
                                   textSize=( (0.045 if doRatio else 0.035) if options.legendFontSize <= 0 else options.legendFontSize ),
