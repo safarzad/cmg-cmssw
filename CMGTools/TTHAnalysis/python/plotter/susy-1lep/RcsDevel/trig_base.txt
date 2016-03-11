@@ -15,4 +15,8 @@ nJetBase: nJets30Clean >= 3
 #Filters: !isData || (isData && Flag_goodVertices && Flag_HBHENoiseFilter_fix && Flag_eeBadScFilter && Flag_HBHENoiseIsoFilter && passCSCFilterList )
 Filters: passFilters
 
+## Filter strange FastSim events
+#clean: (mGo == 0) || (mGo > 0 && met_pt < 3000)
+#clean: (mGo == 0) || (mGo > 0 && JetForMET_pt[0] < 3000)
+
 base: 1
