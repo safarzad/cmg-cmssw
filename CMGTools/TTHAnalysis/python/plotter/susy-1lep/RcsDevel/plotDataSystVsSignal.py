@@ -28,7 +28,7 @@ def scaleToHist(hists, hRef):
 
 if __name__ == "__main__":
 
-    yp.CMS_lumi.lumi_13TeV = str(2.2) + " fb^{-1}"
+    yp.CMS_lumi.lumi_13TeV = str(2.3) + " fb^{-1}"
     yp.CMS_lumi.extraText = "Preliminary"
 
     #yp.CMS_lumi.lumi_13TeV = "MC"
@@ -115,7 +115,8 @@ if __name__ == "__main__":
     else:
 
         ydsSig = yp.YieldStore("Signal")
-        pathSig = "Yields/signal/fixSR/lumi2p25fb/allSF_noPU/mainNJ/merged/"
+        #pathSig = "Yields/signal/fixSR/lumi2p25fb/allSF_noPU/mainNJ/merged/"
+        pathSig = "Yields/signal/fixSR/lumi2p3fb/jPt3TeV/merged/"
         ydsSig.addFromFiles(pathSig+basename,("lep","sele"))
 
         print "#Saving yields to pickle:", pcksig
@@ -218,8 +219,11 @@ if __name__ == "__main__":
     #hPredUnc.SetFillStyle(1001)
     hPredUnc.SetMarkerColor(col)
     hPredUnc.SetMarkerStyle(0)
-    hPredUnc.GetYaxis().SetTitle(ratio.GetYaxis().GetTitle())
+    #hPredUnc.GetYaxis().SetTitle(ratio.GetYaxis().GetTitle())
     hPredUnc.GetYaxis().SetRangeUser(0,3.9)
+    hPredUnc.GetYaxis().SetTitle("Data/Pred.")
+    hPredUnc.GetYaxis().SetTitleSize(0.15)
+    hPredUnc.GetYaxis().SetTitleOffset(0.15)
 
     # set error
     for i in xrange(1,hPredUnc.GetNbinsX()+1):
@@ -230,9 +234,16 @@ if __name__ == "__main__":
     sigcat = "SR_MB"
 
     masses = []
+    '''
     mass = "mGo1200_mLSP800"; massName = "(1200,800)"
     masses.append((mass,massName,yp.kYellow-6,1))
     mass = "mGo1500_mLSP100"; massName = "(1500,100)"
+    masses.append((mass,massName,yp.kMagenta,1))
+    '''
+
+    mass = "mGo1200_mLSP800"; massName = "T1t^{4} 1.2/0.8"
+    masses.append((mass,massName,yp.kYellow-6,1))
+    mass = "mGo1500_mLSP100"; massName = "T1t^{4} 1.5/0.1"
     masses.append((mass,massName,yp.kMagenta,1))
 
     for (mass, massName,col,lsty) in masses:
@@ -240,7 +251,8 @@ if __name__ == "__main__":
 
         yp.colorDict[signame+"_SigStack_"+sigcat] = col
         hSig = yp.makeSampHisto(ydsSig,signame,sigcat,signame+"_SigStack_"+sigcat)
-        hSig.SetTitle("T1tttt "+massName)
+        #hSig.SetTitle("T1tttt "+massName)
+        hSig.SetTitle(massName)
         hSig.SetFillStyle(0)
         hSig.SetLineWidth(2)
         hSig.SetLineStyle(lsty)
@@ -253,7 +265,7 @@ if __name__ == "__main__":
     #### Drawing
     logY = True
     #logY = False
-    cname = "Data_2p2fb_"+mask
+    cname = "Data_2p3fb_"+mask
     hists = [mcStack,hUncert] + sighists + [hDataPois]
     ratios = [hPredUnc,ratioPois]
 
@@ -272,7 +284,7 @@ if __name__ == "__main__":
     exts = [".pdf",".png",".root"]
     #exts = [".pdf"]
 
-    odir = "BinPlots/Data/JECv7/vsSig/allSF_noPU/"
+    odir = "BinPlots/Data/lumi2p3fb/JECv7/vsSig/allSF_noPU/"
     #odir = "BinPlots/Syst/btag/hadronFlavour/allSF_noPU/Method1B/"
     if not os.path.isdir(odir): os.makedirs(odir)
 

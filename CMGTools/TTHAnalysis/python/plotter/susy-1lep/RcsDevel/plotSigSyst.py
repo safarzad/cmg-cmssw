@@ -8,8 +8,8 @@ yp._alpha = 0.8
 
 if __name__ == "__main__":
 
-    #yp.CMS_lumi.lumi_13TeV = str(2.1) + " fb^{-1}"
-    yp.CMS_lumi.lumi_13TeV = "MC"
+    yp.CMS_lumi.lumi_13TeV = str(2.3) + " fb^{-1}"
+    #yp.CMS_lumi.lumi_13TeV = "MC"
     yp.CMS_lumi.extraText = "Simulation"
 
     ## remove '-b' option
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     ## Store dict in pickle file
     storeDict = True
-    pckname = "pickles/sigSysts_Scale_"+mask+".pckz"
+    pckname = "pickles/sigSysts_fix_"+mask+".pckz"
 
     if storeDict == True and os.path.exists(pckname):
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         btagPath = "Yields/signal/systs/btag/T1tttt/allSF_noPU_fixLepSF/meth1A/merged/"; paths.append(btagPath)
         jecPath  = "Yields/signal/systs/JEC/allSF_noSF/merged/"; paths.append(jecPath)
         # for central values
-        #normPath  = "Yields/signal/systs/JEC/allSF_noSF/merged/"; paths.append(normPath)
+        normPath  = "Yields/signal/fixSR/lumi2p3fb/jPt3TeV/merged/"; paths.append(normPath)
 
         for path in paths:
             yds.addFromFiles(path+basename,("lep","sele"))
@@ -113,11 +113,12 @@ if __name__ == "__main__":
     # Sample and variable
     samp = "T1tttt_Scan"
     #mass = "mGo1150_mLSP800"
-    #mass = "mGo1200_mLSP800"
+    mass = "mGo1200_mLSP800"
     #mass = "mGo1500_mLSP100"
-    mass = "mGo1000_mLSP100"
+    #mass = "mGo1000_mLSP100"
 
     masses = [mass]#"mGo1200_mLSP800"]#,"mGo1500_mLSP100"]
+    #masses = ["mGo1200_mLSP800","mGo1500_mLSP100"]
 
     var = "SR_MB"
 
@@ -144,7 +145,7 @@ if __name__ == "__main__":
         ### Add flat systs (lumi, lepSF, triggEff, etc.)
         #flats["stat"] = 0.1
         flats["lepSF"] = 0.05
-        flats["lumi"] = 0.045
+        flats["lumi"] = 0.027
         flats["trig"] = 0.01
         #flats = {}
 
@@ -225,7 +226,7 @@ if __name__ == "__main__":
         # save hists
         allhists += hists + [hCentral,hCentralUncert,stack, sqHist]
 
-        canv = yp.plotHists(var+"_"+signame,[stack,sqHist],[hCentral,hCentralUncert],"TM", 1200, 600)
+        canv = yp.plotHists(var+"_"+signame,[stack,sqHist],[hCentral,hCentralUncert],"TRC", 1200, 600)
         canv.SetName(canv.GetName()+"_Syst")
     #    canv = yp.plotHists(var+"_"+signame+"_Syst",[sqHist]+hists,[hCentral,hCentralUncert],"TM", 1200, 600)
     #    canv = yp.plotHists(var+"_"+signame+"_Stat",[stack,sqHist],hCentral,"TM", 1200, 600)
@@ -239,7 +240,7 @@ if __name__ == "__main__":
 
     #odir = "BinPlots/Syst/Combine/test/allSF_noPU_Wpol/Method1A/"
     #odir = "BinPlots/Syst/Combine/allSF_noPU_Wpol/Method1A/"
-    odir = "BinPlots/Syst/Signal/allSF_noPU_fixLepSF/Method1A/noStatErr/"
+    odir = "BinPlots/Syst/Signal/allSF_noPU_fixLepSF/lumi2p3fb/"
     #odir = "BinPlots/Syst/Signal/allSF_noPU/Method1A/"
     odir += "/"
     if not os.path.isdir(odir): os.makedirs(odir)

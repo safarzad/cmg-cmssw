@@ -9,7 +9,7 @@ yp._alpha = 0.8
 if __name__ == "__main__":
 
     #yp.CMS_lumi.lumi_13TeV = str(2.1) + " fb^{-1}"
-    yp.CMS_lumi.lumi_13TeV = "MC"
+    yp.CMS_lumi.lumi_13TeV = ""
     yp.CMS_lumi.extraText = "Simulation"
 
     ## remove '-b' option
@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     ## Store dict in pickle file
     storeDict = True
-    pckname = "pickles/bkgSysts"+mask+".pck"
+    pckname = "pickles/bkgSysts_fixSR_"+mask+".pck"
 
     if storeDict == True and os.path.exists(pckname):
 
@@ -65,6 +65,8 @@ if __name__ == "__main__":
         btagPath = "Yields/systs/btag/hadFlavour/fixXsec/allSF_noPU/meth1A/merged/"; paths.append(btagPath)
         # lep SF unct < 1%
         #paths = ["Yields/systs/lepSF/test/allSF_noPU/merged_main/"]
+        # central value
+        centrPath = "Yields/wData/jecv7_fixSR/lumi2p3fb/allbins/allSF_noPU/merged"; paths.append(centrPath)
 
         for path in paths:
             yds.addFromFiles(path+"/"+basename,("lep","sele"))
@@ -164,8 +166,21 @@ if __name__ == "__main__":
     stack = yp.getStack(hists)
     sqHist = yp.getSquaredSum(hists)
 
-    hCentralUncert = yp.getHistWithError(hCentral, sqHist)
-    canv = yp.plotHists(var+"_"+samp+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TM", 1200, 600)
+    hCentral.GetYaxis().SetTitle("#kappa_{EWK}")
+    hCentral.GetYaxis().SetTitleSize(0.15)
+    hCentral.GetYaxis().SetTitleOffset(0.15)
+
+    hCentralUncert = yp.getHistWithError(hCentral, sqHist, True)
+
+    '''
+    for bin in range(1,hCentral.GetNbinsX()+1):
+        print bin
+        print hCentral.GetBinContent(bin), hCentralUncert.GetBinContent(bin)
+        print hCentral.GetBinError(bin), hCentralUncert.GetBinError(bin)
+    '''
+
+    #canv = yp.plotHists(var+"_"+samp+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TM", 1200, 600, nCols = 5)
+    canv = yp.plotHists(var+"_"+samp+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TRC", 1200, 600)
 #    canv = yp.plotHists(var+"_"+samp+"_Syst",[sqHist]+hists,[hCentral,hCentralUncert],"TM", 1200, 600)
 #    canv = yp.plotHists(var+"_"+samp+"_Stat",[stack,sqHist],hCentral,"TM", 1200, 600)
 
@@ -178,7 +193,7 @@ if __name__ == "__main__":
 
     #odir = "BinPlots/Syst/Combine/test/allSF_noPU_Wpol/Method1A/"
     #odir = "BinPlots/Syst/Combine/allSF_noPU_LTfix/Method1A/"
-    odir = "BinPlots/Syst/lepSF/allSF_noPU/"
+    odir = "BinPlots/Syst/Combine/forApproval/allSF_noPU/"
     if not os.path.isdir(odir): os.makedirs(odir)
 
     ## Save hists

@@ -10,7 +10,7 @@ yp._alpha = 0.35
 
 if __name__ == "__main__":
 
-    yp.CMS_lumi.lumi_13TeV = str(2.2) + " fb^{-1}"
+    yp.CMS_lumi.lumi_13TeV = str(2.3) + " fb^{-1}"
     yp.CMS_lumi.extraText = "Simulation"
 
     ## remove '-b' option
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
                     exts = [".pdf",".png",".root"]
 
-                    odir = "BinPlots/MC/RcsKappa/all/"+mask+"/"
+                    odir = "BinPlots/MC/RcsKappa/lumi2p3fb/"+mask+"/"
                     if not os.path.exists(odir): os.makedirs(odir)
 
                     for ext in exts:
