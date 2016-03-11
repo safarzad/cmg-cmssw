@@ -596,8 +596,8 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
 
     if legPos == "Wide":
         leg.SetNColumns(2)
-    if legPos == "TRC":
-        leg.SetNColumns(2)
+    #if legPos == "TRC":
+    #    leg.SetNColumns(2)
 
     SetOwnership(canv, 0)
     SetOwnership(leg, 0)
