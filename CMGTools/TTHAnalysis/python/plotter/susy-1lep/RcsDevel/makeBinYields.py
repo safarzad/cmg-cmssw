@@ -427,7 +427,7 @@ if __name__ == "__main__":
         cDict.update(cutDictSRf5)
         cDict.update(cutDictCRf5)
 
-    doFew =  True
+    doFew = True
     if doFew:
         cDict.update(cutDictSRf68Few)
         cDict.update(cutDictCRf68Few)

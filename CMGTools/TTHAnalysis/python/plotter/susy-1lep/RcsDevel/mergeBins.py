@@ -237,7 +237,7 @@ if __name__ == "__main__":
     # find files matching pattern
     fileList = glob.glob(pattern+"*.root")
 
-    bins = ['NJ5','NJ68','NJ9i','Few']
+    bins = ['NJ5','NJ68','NJ9i']#,'Few']
 
     for bin in bins:
         print "Merging bin:", bin

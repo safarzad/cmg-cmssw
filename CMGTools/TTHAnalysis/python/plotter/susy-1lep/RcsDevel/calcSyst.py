@@ -107,9 +107,9 @@ def makeSystHists(fileList):
     # filter
     #fileList = [fname for fname in fileList if 'NB3' not in fname]
 
-    hnames = ["T1tttt_Scan"] # process name
+    #hnames = ["T1tttt_Scan"] # process name
     #hnames = ["EWK"] # process name
-    #hnames = ["EWK","TTJets","WJets","SingleTop","DY","TTV"] # process name
+    hnames = ["EWK","TTJets","WJets","SingleTop","DY","TTV"] # process name
     #hnames = ['T_tWch','TToLeptons_tch','TBar_tWch', 'EWK', 'TToLeptons_sch'] # process name
     #hnames = ["TTJets","WJets","SingleTop","DY","TTV"] # process name
     #hnames = getHnames(fileList[0],'SR_MB') # get process names from file
@@ -120,7 +120,8 @@ def makeSystHists(fileList):
     #systNames = ["topPt"]
     #systNames = ["Wxsec"]
     #systNames = ["TTVxsec"]
-    systNames = ["JEC"]
+    systNames = ["lepSF"]
+    #systNames = ["JEC"]
     #systNames = ["DLSlope"]
     #systNames = ["DLConst"]
     #systNames = ["JER"]
