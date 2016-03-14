@@ -7,6 +7,8 @@ import pickle
 # Directory for SFs
 sfdir = "../python/tools/SFs/"
 
+print 80*"#"
+print "Initializing Btag SF"
 
 # Basing on macro from Vienna
 # https://github.com/HephySusySW/Workspace/blob/74X-master/RA4Analysis/cmgPostProcessing/btagEfficiency.py

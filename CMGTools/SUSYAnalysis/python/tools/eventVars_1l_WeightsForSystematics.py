@@ -83,20 +83,21 @@ def getGenTopWLepton(event):
     elif len(lFromW) == 2:
         match = False
 
-        leadLep = Collection(event,"LepGood","nLepGood")[0]
+        if event.nLepGood > 0:
+            leadLep = Collection(event,"LepGood","nLepGood")[0]
 
-        for genLep in lFromW:
-            if leadLep.charge == genLep.charge:
-                match == True
+            for genLep in lFromW:
+                if leadLep.charge == genLep.charge:
+                    match == True
 
-                genW = genParts[genLep.motherIndex]
-                genTop = genParts[genW.motherIndex]
+                    genW = genParts[genLep.motherIndex]
+                    genTop = genParts[genW.motherIndex]
 
-                topP4 = getLV(genTop.p4())
-                wP4 = getLV(genW.p4())
-                lepP4 = getLV(genLep.p4())
+                    topP4 = getLV(genTop.p4())
+                    wP4 = getLV(genW.p4())
+                    lepP4 = getLV(genLep.p4())
 
-                return topP4, wP4, lepP4
+                    return topP4, wP4, lepP4
 
         if not match:
             print 'No match at all!'
@@ -109,7 +110,7 @@ def getWPolWeights(event, sample):
     wUp = 1
     wDown = 1
 
-    if "TT" in sample: #W polarization in TTbar
+    if "TTJets" in sample: #W polarization in TTbar
         topP4, wP4, lepP4 = getGenTopWLepton(event)
 
         if topP4 != None:
@@ -145,7 +146,9 @@ class EventVars1LWeightsForSystematics:
             # W polarisation
             "WpolWup","WpolWdown",
             # PDF related -- Work In Progress
-            "pdfW","pdfW_Up","pdfW_Down"
+            #"pdfW","pdfW_Up","pdfW_Down",
+            # Scale uncertainty
+            #"scaleW","scaleW_up","scaleW_down"
             ]
 
     def listBranches(self):
@@ -183,12 +186,11 @@ class EventVars1LWeightsForSystematics:
         pdfWmin = 99
         pdfWmax = 0
         #lheWgts = [w for w in Collection(event,"LHEweight_wgt","nLHEweight")]
-        '''
 
         ret['pdfW'] = pdfWcentr
         ret['pdfW_Up'] = pdfWup
         ret['pdfW_Down'] = pdfWup
-
+        '''
 
         ### TOP RELATED VARS
         genParts = [l for l in Collection(event,"GenPart","nGenPart")]
