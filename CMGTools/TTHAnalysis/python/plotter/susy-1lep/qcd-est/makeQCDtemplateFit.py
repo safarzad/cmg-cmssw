@@ -12,7 +12,7 @@ from ROOT import *
 ## STYLE
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
-gStyle.SetPadTopMargin(0.05)
+gStyle.SetPadTopMargin(0.06)
 gStyle.SetPadRightMargin(0.075)
 
 #gStyle.SetLabelFont(62)
@@ -26,7 +26,7 @@ import CMS_lumi
 
 CMS_lumi.writeExtraText = 1
 CMS_lumi.extraText = "Preliminary"
-iPos = 11
+iPos = 0
 if( iPos==0 ): CMS_lumi.relPosX = 0.1
 
 ## Canvas sizes
