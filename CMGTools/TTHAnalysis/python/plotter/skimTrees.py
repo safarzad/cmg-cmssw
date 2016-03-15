@@ -114,7 +114,7 @@ if __name__ == "__main__":
             mysource  = options.path+"/"+tty.cname()
             mycut = tty.adaptExpr(cut.allCuts(),cut=True)
             if options.doS2V: mycut  = scalarToVector(mycut)
-         if options.pretend: continue
+            if options.pretend: continue
             tasks.append((tty,mysource,myoutpath,cut,mycut,options,selectors))
     if options.jobs == 0: 
         map(_runIt, tasks)
